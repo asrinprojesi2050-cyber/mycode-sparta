@@ -1,8 +1,8 @@
 
 "use client"
 
-import { useState } from 'react';
-import { ArrowLeft, MapPin, Users, Utensils, Navigation, Info, X, Check, Sparkles, QrCode, Coffee } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, MapPin, Users, Utensils, Navigation, Info, X, Check, Sparkles, QrCode, Coffee, ArrowUpRight, Timer, Flag } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -68,10 +68,121 @@ const facilities = [
 
 export default function FacilitiesPage() {
   const [selectedFacility, setSelectedFacility] = useState<typeof facilities[0] | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [navTarget, setNavTarget] = useState<typeof facilities[0] | null>(null);
 
-  const handleOpenMaps = (url: string) => {
-    window.open(url, '_blank');
+  const startNavigation = (facility: typeof facilities[0]) => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(100);
+    }
+    setNavTarget(facility);
+    setIsNavigating(true);
   };
+
+  const stopNavigation = () => {
+    setIsNavigating(false);
+    setNavTarget(null);
+  };
+
+  if (isNavigating && navTarget) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-zinc-900 animate-in fade-in duration-500 flex flex-col overflow-hidden">
+        {/* Top Direction Band */}
+        <div className="bg-zinc-800 p-6 pt-12 text-white shadow-2xl relative z-10 border-b border-white/5">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <ArrowUpRight className="h-10 w-10 text-white" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-2xl font-black tracking-tight leading-none">300m</p>
+              <p className="text-sm font-bold text-blue-400 uppercase tracking-widest">Sağa Dönün</p>
+              <p className="text-zinc-400 font-medium text-sm">{navTarget.name} Yolu</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Simulated Map View */}
+        <div className="flex-1 relative bg-zinc-900 overflow-hidden">
+          {/* Map Grid Pattern */}
+          <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+          
+          {/* Simulated Route */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path 
+              d="M 50 100 L 50 60 L 80 60 L 80 20" 
+              fill="none" 
+              stroke="#3b82f6" 
+              strokeWidth="1.5" 
+              strokeLinecap="round" 
+              className="opacity-80"
+            />
+          </svg>
+
+          {/* User Icon (Moving Arrow) */}
+          <div className="absolute bottom-[20%] left-1/2 -translate-x-1/2 animate-[nav-move_10s_linear_infinite]">
+             <div className="relative">
+                <div className="w-12 h-12 bg-blue-500 rounded-full border-4 border-white shadow-2xl flex items-center justify-center rotate-[-15deg]">
+                   <Navigation className="h-6 w-6 text-white fill-white" />
+                </div>
+                <div className="absolute -inset-4 bg-blue-500/20 rounded-full animate-ping"></div>
+             </div>
+          </div>
+
+          {/* Destination Marker */}
+          <div className="absolute top-[20%] right-[20%]">
+             <div className="flex flex-col items-center">
+                <div className="bg-white px-3 py-1.5 rounded-xl shadow-2xl border border-zinc-200 mb-2">
+                   <p className="text-[10px] font-black text-zinc-900 uppercase tracking-tight">{navTarget.name}</p>
+                </div>
+                <div className="w-10 h-10 bg-red-500 rounded-full border-4 border-white shadow-2xl flex items-center justify-center">
+                   <Flag className="h-5 w-5 text-white" />
+                </div>
+             </div>
+          </div>
+        </div>
+
+        {/* Bottom Info Panel */}
+        <div className="bg-zinc-800 p-8 pb-12 rounded-t-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.5)] relative z-10 border-t border-white/5">
+           <div className="flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                 <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 text-blue-400 mb-1">
+                       <Timer className="h-4 w-4" />
+                       <span className="text-[10px] font-black uppercase tracking-[0.2em]">Kalan Süre</span>
+                    </div>
+                    <p className="text-3xl font-black text-white leading-none">12 <span className="text-sm font-bold text-zinc-500">dk</span></p>
+                 </div>
+                 <div className="w-px h-10 bg-zinc-700 mx-2" />
+                 <div className="space-y-0.5">
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-1">Mesafe</p>
+                    <p className="text-xl font-bold text-white leading-none">4.2 <span className="text-xs text-zinc-500">km</span></p>
+                 </div>
+              </div>
+
+              <button 
+                onClick={stopNavigation}
+                className="w-16 h-16 bg-red-500 rounded-3xl flex items-center justify-center shadow-xl shadow-red-500/20 active:scale-90 transition-transform"
+              >
+                 <X className="h-8 w-8 text-white font-black" />
+              </button>
+           </div>
+           
+           <div className="mt-8 flex items-center justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-[0.25em]">
+              <p>Varış: 19:45</p>
+              <p className="text-blue-500">En Hızlı Rota</p>
+           </div>
+        </div>
+
+        <style jsx>{`
+          @keyframes nav-move {
+            0% { transform: translate(-50%, 0) rotate(-15deg); }
+            50% { transform: translate(-50%, -100px) rotate(0deg); }
+            100% { transform: translate(-50%, -200px) rotate(15deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-24 min-h-screen bg-[#FDFBF9]">
@@ -102,7 +213,6 @@ export default function FacilitiesPage() {
                       alt={facility.name}
                       fill
                       className="object-cover rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none transition-transform duration-500 hover:scale-105"
-                      data-ai-hint="restaurant view"
                     />
                     {/* Elit Rozet */}
                     <div className="absolute top-4 left-4 px-3 py-1.5 bg-white/80 backdrop-blur-md rounded-full text-[10px] font-black text-primary flex items-center gap-2 shadow-lg border border-white/40">
@@ -167,7 +277,7 @@ export default function FacilitiesPage() {
                       </Button>
                       <Button 
                         className="h-12 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-95 gap-2"
-                        onClick={() => handleOpenMaps(facility.mapsUrl)}
+                        onClick={() => startNavigation(facility)}
                       >
                         <Navigation className="h-4 w-4" /> Yol Tarifi
                       </Button>
@@ -190,7 +300,6 @@ export default function FacilitiesPage() {
                 alt={selectedFacility.name}
                 fill
                 className="object-cover"
-                data-ai-hint="food close up"
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-[#FDFBF9] via-transparent to-black/30" />
