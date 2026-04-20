@@ -1,19 +1,52 @@
 
 "use client"
 
-import { useState } from 'react';
-import { ArrowLeft, Wifi, QrCode, CreditCard, Plus, ChevronRight, History, Info, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Wifi, QrCode, CreditCard, Plus, ChevronRight, History, Info, Sparkles, X, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 export default function IspartaKartPage() {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [qrCountdown, setQrCountdown] = useState(5);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // QR Countdown logic
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isQrModalOpen && qrCountdown > 0) {
+      timer = setInterval(() => {
+        setQrCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (qrCountdown === 0) {
+      setIsQrModalOpen(false);
+      setQrCountdown(5); // Reset
+    }
+    return () => clearInterval(timer);
+  }, [isQrModalOpen, qrCountdown]);
+
+  const handleTopup = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsSuccess(false);
+        setIsTopupModalOpen(false);
+        setSelectedAmount(null);
+      }, 2000);
+    }, 1500);
+  };
 
   const transactions = [
-    { id: 1, title: "Halk Otobüsü - Hat 1", date: "Bugün, 08:45", amount: "-4.50 ₺", type: "payment" },
+    { id: 1, title: "Halk Otobüsü - Hat 18", date: "Bugün, 08:45", amount: "-4.50 ₺", type: "payment" },
     { id: 2, title: "Bakiye Yükleme", date: "Dün, 14:20", amount: "+100.00 ₺", type: "topup" },
     { id: 3, title: "Halk Otobüsü - Hat 4", date: "12 Haz, 17:30", amount: "-4.50 ₺", type: "payment" },
   ];
@@ -34,69 +67,63 @@ export default function IspartaKartPage() {
         <Link href="/dashboard" className="p-2 bg-white rounded-xl shadow-soft border border-border/50">
           <ArrowLeft className="h-5 w-5 text-primary" />
         </Link>
-        <h1 className="text-xl font-bold text-primary tracking-tight">Isparta Kart</h1>
+        <h1 className="text-xl font-bold text-primary tracking-tight">Isparta Kartım</h1>
       </header>
 
-      <main className="px-6 pt-6 animate-fade-in space-y-8">
-        {/* Virtual Card Section */}
-        <section>
-          <div className="relative group perspective-1000">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-accent/50 rounded-[2rem] blur-xl opacity-20 transition duration-1000 group-hover:opacity-40"></div>
-            <Card className="relative border-none bg-gradient-to-br from-[#8D3B4A] via-[#A64459] to-[#8D3B4A] text-white rounded-[1.75rem] overflow-hidden shadow-2xl aspect-[1.6/1] flex flex-col justify-between p-8 border border-white/10">
-              {/* Card Decoration */}
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl" />
-              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl" />
-              
+      <main className="px-6 pt-6 animate-fade-in space-y-8 max-w-md mx-auto">
+        {/* Virtual Card Section - Optimized Size & Aspect Ratio */}
+        <section className="flex justify-center">
+          <div className="relative group w-full max-w-[340px]">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-accent/50 rounded-[1.5rem] blur-xl opacity-20 transition duration-1000 group-hover:opacity-40"></div>
+            <Card className="relative border-none bg-gradient-to-br from-[#8D3B4A] via-[#A64459] to-[#8D3B4A] text-white rounded-[1.25rem] overflow-hidden shadow-2xl aspect-[1.58/1] flex flex-col justify-between p-6 border border-white/10">
               <div className="flex justify-between items-start relative z-10">
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-md">
+                    <div className="p-1 bg-white/10 rounded-lg backdrop-blur-md">
                       <RoseIcon />
                     </div>
-                    <span className="font-bold text-sm tracking-tight uppercase">MyCode City</span>
+                    <span className="font-bold text-[10px] tracking-tight uppercase">MyCode City</span>
                   </div>
-                  <p className="text-[10px] text-white/60 uppercase tracking-[0.2em] font-medium">Sanal Ulaşım Kartı</p>
+                  <p className="text-[8px] text-white/60 uppercase tracking-[0.2em] font-medium">Sanal Ulaşım Kartı</p>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <div className="h-8 w-12 bg-white/20 rounded-md backdrop-blur-md border border-white/20 flex items-center justify-center">
-                    <div className="w-6 h-4 bg-gradient-to-r from-yellow-400/80 to-yellow-600/80 rounded-[2px]" />
-                  </div>
-                </div>
+                <Wifi className="h-4 w-4 text-white/70 rotate-90" />
               </div>
 
               <div className="relative z-10">
-                <p className="text-[10px] text-white/50 uppercase tracking-widest mb-1 font-bold">Güncel Bakiye</p>
+                <p className="text-[9px] text-white/50 uppercase tracking-widest mb-0.5 font-bold">Güncel Bakiye</p>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold tracking-tighter">142.50</span>
-                  <span className="text-xl font-medium opacity-80">₺</span>
+                  <span className="text-3xl font-bold tracking-tighter text-white">142.50</span>
+                  <span className="text-lg font-medium opacity-80 text-white">₺</span>
                 </div>
               </div>
 
               <div className="flex justify-between items-end relative z-10">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-mono tracking-[0.3em] opacity-40">5432 **** **** 1234</p>
-                  <p className="text-[9px] font-bold uppercase tracking-wider opacity-60">Vatandaş Kart</p>
+                <div className="space-y-0.5">
+                  <p className="text-[9px] font-mono tracking-[0.2em] opacity-40">5432 **** **** 1234</p>
+                  <p className="text-[8px] font-bold uppercase tracking-wider opacity-60">Vatandaş Kart</p>
                 </div>
-                <div className="p-2 bg-white/5 rounded-full backdrop-blur-sm border border-white/10">
-                  <Wifi className="h-5 w-5 text-white/70 rotate-90" />
+                <div className="h-6 w-9 bg-white/20 rounded-sm backdrop-blur-sm border border-white/10 flex items-center justify-center">
+                   <div className="w-4 h-2.5 bg-gradient-to-r from-yellow-400/80 to-yellow-600/80 rounded-[1px]" />
                 </div>
               </div>
             </Card>
           </div>
         </section>
 
-        {/* Top-up Section */}
+        {/* Quick Top-up Section */}
         <section className="space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Bakiye Yükle</h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Hızlı Bakiye Yükle</h2>
+          </div>
           <div className="grid grid-cols-3 gap-3">
             {[50, 100, 200].map((amount) => (
               <button
                 key={amount}
                 onClick={() => setSelectedAmount(amount)}
                 className={cn(
-                  "py-4 rounded-2xl font-bold transition-all border-2 text-sm",
+                  "py-3 rounded-xl font-bold transition-all border-2 text-xs",
                   selectedAmount === amount 
-                    ? "bg-primary text-white border-primary shadow-lg scale-105" 
+                    ? "bg-primary text-white border-primary shadow-md scale-105" 
                     : "bg-white text-primary border-transparent shadow-soft"
                 )}
               >
@@ -104,29 +131,38 @@ export default function IspartaKartPage() {
               </button>
             ))}
           </div>
-          <Button className="w-full h-14 rounded-2xl bg-white border border-primary/20 text-primary hover:bg-primary/5 shadow-soft flex items-center justify-center gap-3 group">
-            <CreditCard className="h-5 w-5 group-hover:scale-110 transition-transform" />
-            <span className="font-bold">Kredi Kartı ile Yükle</span>
+          <Button 
+            onClick={() => selectedAmount && setIsTopupModalOpen(true)}
+            disabled={!selectedAmount}
+            className="w-full h-12 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-md font-bold text-sm transition-transform active:scale-95"
+          >
+            {selectedAmount ? `${selectedAmount} ₺ Yükle` : "Tutar Seçiniz"}
           </Button>
+          <button className="w-full py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider hover:text-primary transition-colors">
+            Farklı Tutar Yükle
+          </button>
         </section>
 
-        {/* QR Button Section */}
+        {/* QR Button Section - Showy Part */}
         <section>
-          <button className="w-full relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-accent to-primary rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
-            <div className="relative w-full h-24 rounded-3xl bg-white border border-accent/20 flex items-center justify-between px-8 shadow-soft overflow-hidden active:scale-[0.98] transition-all">
+          <button 
+            onClick={() => setIsQrModalOpen(true)}
+            className="w-full relative group"
+          >
+            <div className="absolute -inset-1 bg-gradient-to-r from-accent to-primary rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
+            <div className="relative w-full h-20 rounded-2xl bg-white border border-accent/20 flex items-center justify-between px-6 shadow-soft overflow-hidden active:scale-[0.98] transition-all">
               <div className="absolute inset-0 bg-accent/5 animate-pulse opacity-50"></div>
-              <div className="flex items-center gap-5 relative z-10">
-                <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center text-accent">
-                  <QrCode className="h-8 w-8" />
+              <div className="flex items-center gap-4 relative z-10">
+                <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center text-accent">
+                  <QrCode className="h-6 w-6" />
                 </div>
                 <div className="text-left">
-                  <p className="text-lg font-black text-accent tracking-tight">QR Okut & Bin</p>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Hızlı Dijital Biniş</p>
+                  <p className="text-base font-black text-accent tracking-tight">QR Okut & Bin</p>
+                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Hızlı Dijital Biniş</p>
                 </div>
               </div>
-              <div className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center shadow-lg group-hover:translate-x-1 transition-transform relative z-10">
-                <ChevronRight className="h-6 w-6" />
+              <div className="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center shadow-lg group-hover:translate-x-1 transition-transform relative z-10">
+                <ChevronRight className="h-5 w-5" />
               </div>
             </div>
           </button>
@@ -135,27 +171,27 @@ export default function IspartaKartPage() {
         {/* Recent Activity */}
         <section className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Son Hareketler</h2>
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Son Hareketler</h2>
             <button className="text-[10px] font-bold text-primary uppercase tracking-wider">Tümünü Gör</button>
           </div>
           <div className="space-y-3">
             {transactions.map((t) => (
               <Card key={t.id} className="border-none shadow-soft rounded-2xl bg-white overflow-hidden active:scale-[0.99] transition-transform">
                 <CardContent className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <div className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center",
+                      "w-9 h-9 rounded-lg flex items-center justify-center",
                       t.type === 'payment' ? "bg-red-50 text-red-500" : "bg-green-50 text-green-500"
                     )}>
-                      {t.type === 'payment' ? <History className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+                      {t.type === 'payment' ? <History className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                     </div>
                     <div>
-                      <p className="text-sm font-bold">{t.title}</p>
-                      <p className="text-[10px] text-muted-foreground font-medium">{t.date}</p>
+                      <p className="text-xs font-bold">{t.title}</p>
+                      <p className="text-[9px] text-muted-foreground font-medium">{t.date}</p>
                     </div>
                   </div>
                   <p className={cn(
-                    "font-bold text-sm",
+                    "font-bold text-xs",
                     t.type === 'payment' ? "text-foreground" : "text-green-600"
                   )}>{t.amount}</p>
                 </CardContent>
@@ -163,20 +199,99 @@ export default function IspartaKartPage() {
             ))}
           </div>
         </section>
-
-        {/* Info Box */}
-        <section className="bg-primary/5 rounded-2xl p-5 border border-primary/10 flex gap-4">
-          <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary shadow-sm shrink-0">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs font-bold text-primary">Dijital Gelecek</p>
-            <p className="text-[10px] text-primary/70 leading-relaxed font-medium">
-              Isparta Kart artık tamamen dijital! Fiziksel karta ihtiyaç duymadan NFC veya QR ile tüm toplu taşıma araçlarını kullanabilirsiniz.
-            </p>
-          </div>
-        </section>
       </main>
+
+      {/* Top-up Confirmation Modal */}
+      <Dialog open={isTopupModalOpen} onOpenChange={setIsTopupModalOpen}>
+        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl p-6 border-none bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-primary">
+              {isSuccess ? "Yükleme Başarılı" : "Yüklemeyi Onayla"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="py-6 flex flex-col items-center justify-center gap-4">
+            {isSuccess ? (
+              <div className="flex flex-col items-center gap-4 animate-in zoom-in-95 duration-300">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                  <CheckCircle2 className="h-10 w-10" />
+                </div>
+                <p className="text-sm font-medium text-center">Bakiyeniz güncellendi!</p>
+              </div>
+            ) : (
+              <>
+                <div className="w-full bg-primary/5 rounded-2xl p-6 text-center space-y-2">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Yüklenecek Tutar</p>
+                  <p className="text-4xl font-black text-primary">{selectedAmount} ₺</p>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground bg-secondary/30 p-4 rounded-xl w-full">
+                  <CreditCard className="h-5 w-5 text-primary" />
+                  <span>**** **** **** 1234 numaralı kartınız kullanılacak.</span>
+                </div>
+              </>
+            )}
+          </div>
+
+          {!isSuccess && (
+            <DialogFooter className="flex-col gap-3">
+              <Button 
+                onClick={handleTopup} 
+                disabled={isProcessing}
+                className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl bg-primary hover:bg-primary/90"
+              >
+                {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : "Ödemeyi Tamamla"}
+              </Button>
+              <Button variant="ghost" onClick={() => setIsTopupModalOpen(false)} className="w-full text-muted-foreground">Vazgeç</Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Code Modal - Showy Interaction */}
+      <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>
+        <DialogContent className="max-w-[85vw] sm:max-w-sm rounded-[2.5rem] p-8 border-none bg-white/95 backdrop-blur-xl shadow-2xl">
+          <div className="flex flex-col items-center gap-8 py-4">
+            <div className="text-center space-y-1">
+              <DialogTitle className="text-2xl font-black text-accent tracking-tight">Dijital Biniş</DialogTitle>
+              <DialogDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Kullanıma Hazır</DialogDescription>
+            </div>
+
+            {/* QR Framework */}
+            <div className="relative p-6 bg-white rounded-[2rem] shadow-inner border-4 border-accent/20 group animate-in zoom-in-90 duration-500">
+              <div className="absolute inset-0 bg-accent/5 animate-pulse rounded-[1.8rem]"></div>
+              <QrCode className="h-48 w-48 text-accent relative z-10" />
+              
+              {/* Scan Line Animation */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-accent/30 animate-[scan_2s_linear_infinite] blur-sm z-20"></div>
+            </div>
+
+            <div className="text-center space-y-4 w-full">
+              <p className="text-xs font-medium text-foreground/70">Otobüsteki cihaza okutunuz</p>
+              
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border-2 border-accent text-accent font-bold text-xl">
+                {qrCountdown}
+              </div>
+              
+              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Geri sayım bitince kapanır</p>
+            </div>
+
+            <Button 
+              variant="ghost" 
+              onClick={() => setIsQrModalOpen(false)}
+              className="p-2 rounded-full hover:bg-accent/10 text-muted-foreground"
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <style jsx global>{`
+        @keyframes scan {
+          0% { top: 0; }
+          100% { top: 100%; }
+        }
+      `}</style>
 
       <BottomNav />
     </div>
