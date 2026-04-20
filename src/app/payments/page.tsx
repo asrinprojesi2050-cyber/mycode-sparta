@@ -2,7 +2,7 @@
 "use client"
 
 import { useState } from 'react';
-import { ArrowLeft, CreditCard, Receipt, CheckCircle2, Plus, ChevronRight, Droplets, Wallet, ShieldCheck, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, CreditCard, Receipt, CheckCircle2, Plus, ChevronRight, Droplets, Wallet, ShieldCheck, Loader2, Sparkles, Flame, Zap, X } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,32 +11,57 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { BottomNav } from '@/components/bottom-nav';
 import { cn } from '@/lib/utils';
 
+const categories = [
+  { id: 'water', label: 'Su', provider: 'Isparta Belediyesi', icon: Droplets, color: 'text-blue-500' },
+  { id: 'gas', label: 'Doğalgaz', provider: 'Torosgaz', icon: Flame, color: 'text-orange-500' },
+  { id: 'electric', label: 'Elektrik', provider: 'CK Akdeniz', icon: Zap, color: 'text-yellow-500' },
+];
+
+const billsData: Record<string, any[]> = {
+  water: [
+    { id: 24001, title: 'Haziran 2024 Faturası', dueDate: '25.06.2024', amount: '145.50 ₺', provider: 'Isparta Belediyesi' },
+  ],
+  gas: [
+    { id: 35001, title: 'Nisan Ayı Faturası', dueDate: '24.04.2024', amount: '450.00 ₺', provider: 'Torosgaz' },
+    { id: 35002, title: 'Mayıs Ayı Faturası', dueDate: '22.05.2024', amount: '210.25 ₺', provider: 'Torosgaz' },
+  ],
+  electric: [
+    { id: 46001, title: 'Dönem Faturası', dueDate: '20.06.2024', amount: '385.40 ₺', provider: 'CK Akdeniz' },
+  ]
+};
+
 const pastBills = [
   { id: 101, type: 'Su', date: '15 Mayıs 2024', amount: '85.20 ₺', status: 'Ödendi' },
-  { id: 102, type: 'Su', date: '12 Nisan 2024', amount: '92.40 ₺', status: 'Ödendi' },
-  { id: 103, type: 'Su', date: '10 Mart 2024', amount: '78.50 ₺', status: 'Ödendi' },
+  { id: 102, type: 'Gaz', date: '12 Nisan 2024', amount: '320.40 ₺', status: 'Ödendi' },
 ];
 
 export default function PaymentsPage() {
+  const [selectedCategory, setSelectedCategory] = useState('water');
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [selectedBill, setSelectedBill] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const handleOpenPayment = (bill: any) => {
+    setSelectedBill(bill);
+    setIsPayModalOpen(true);
+  };
+
   const handlePayment = () => {
     setIsProcessing(true);
-    // Mimic processing time
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);
       setTimeout(() => {
         setIsSuccess(false);
         setIsPayModalOpen(false);
-      }, 4000); // Increased time to read the reward message
+        setSelectedBill(null);
+      }, 4000);
     }, 1500);
   };
 
   return (
-    <div className="pb-24 min-h-screen bg-background">
+    <div className="pb-24 min-h-screen bg-[#FDFBF9]">
       <header className="px-6 pt-8 pb-4 flex items-center gap-4 bg-white/50 backdrop-blur-md sticky top-0 z-40">
         <Link href="/dashboard" className="p-2 bg-white rounded-xl shadow-soft border border-border/50">
           <ArrowLeft className="h-5 w-5 text-primary" />
@@ -45,44 +70,82 @@ export default function PaymentsPage() {
       </header>
 
       <main className="px-6 pt-6 animate-fade-in space-y-8">
-        {/* Active Bill Card */}
+        {/* Categories Grid */}
         <section>
-          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Aktif Faturalar</h2>
-          <Card className="border-none shadow-soft rounded-2xl overflow-hidden bg-white ring-1 ring-primary/5">
-            <CardContent className="p-0">
-              <div className="bg-gradient-to-r from-primary to-primary/80 p-6 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <Droplets size={80} />
-                </div>
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
-                      <Droplets className="h-5 w-5" />
-                    </div>
-                    <span className="text-sm font-medium text-white/90">Isparta Belediyesi</span>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Kategoriler</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              const isActive = selectedCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={cn(
+                    "flex flex-col items-center p-4 rounded-2xl bg-white transition-all border-2",
+                    isActive 
+                      ? "border-primary shadow-lg ring-1 ring-primary/20 scale-[1.02]" 
+                      : "border-transparent shadow-soft opacity-70 grayscale-[30%]"
+                  )}
+                >
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
+                    <Icon className={cn("h-6 w-6", cat.color)} />
                   </div>
-                  <h3 className="text-lg font-bold mb-6">Su ve Atık Su Faturası</h3>
-                  
-                  <div className="flex justify-between items-end">
-                    <div className="space-y-1">
-                      <p className="text-[10px] uppercase tracking-wider text-white/70">Ödenmemiş Borç</p>
-                      <p className="text-3xl font-bold">145.50 ₺</p>
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-tighter mb-1">{cat.label}</span>
+                  <span className="text-[8px] text-muted-foreground font-medium text-center leading-tight">{cat.provider}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Dynamic Bill List */}
+        <section className="space-y-4">
+          <div className="flex justify-between items-end">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Ödenmemiş Borçlar</h2>
+            <Badge variant="outline" className="text-[10px] font-bold text-primary border-primary/20">
+              {billsData[selectedCategory].length} Fatura
+            </Badge>
+          </div>
+          
+          <div className="space-y-4">
+            {billsData[selectedCategory].length > 0 ? (
+              billsData[selectedCategory].map((bill) => (
+                <Card key={bill.id} className="border-none shadow-soft rounded-2xl overflow-hidden bg-white group transition-all">
+                  <CardContent className="p-5">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center">
+                          {selectedCategory === 'water' && <Droplets className="h-5 w-5 text-blue-500" />}
+                          {selectedCategory === 'gas' && <Flame className="h-5 w-5 text-orange-500" />}
+                          {selectedCategory === 'electric' && <Zap className="h-5 w-5 text-yellow-500" />}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-sm leading-tight">{bill.title}</h3>
+                          <p className="text-[10px] text-muted-foreground font-medium uppercase">{bill.provider}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-primary">{bill.amount}</p>
+                        <p className="text-[9px] font-bold text-red-500 uppercase">Son: {bill.dueDate}</p>
+                      </div>
                     </div>
                     <Button 
-                      onClick={() => setIsPayModalOpen(true)}
-                      className="bg-white text-primary hover:bg-white/90 rounded-xl px-6 h-11 font-bold shadow-lg"
+                      onClick={() => handleOpenPayment(bill)}
+                      className="w-full bg-primary hover:bg-primary/90 text-white font-bold h-11 rounded-xl shadow-md transition-transform active:scale-95"
                     >
-                      Hemen Öde
+                      Hızlı Öde
                     </Button>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="py-12 flex flex-col items-center justify-center text-center space-y-3 opacity-40">
+                <Receipt className="h-12 w-12" />
+                <p className="text-sm font-medium">Bu kategori için ödenmemiş borç bulunamadı.</p>
               </div>
-              <div className="p-4 flex items-center justify-between text-[11px] text-muted-foreground border-t border-border/10">
-                <span className="flex items-center gap-1 font-medium"><Receipt className="h-3 w-3" /> Abone No: 24001234</span>
-                <span className="font-medium">Son Ödeme: 25.06.2024</span>
-              </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         </section>
 
         {/* Payment History */}
@@ -93,11 +156,11 @@ export default function PaymentsPage() {
           </div>
           <div className="space-y-3">
             {pastBills.map((bill) => (
-              <Card key={bill.id} className="border-none shadow-soft rounded-xl bg-white overflow-hidden group active:scale-[0.98] transition-transform">
+              <Card key={bill.id} className="border-none shadow-soft rounded-xl bg-white overflow-hidden active:scale-[0.98] transition-transform">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-primary/60">
-                      <Droplets className="h-5 w-5" />
+                      {bill.type === 'Su' ? <Droplets className="h-5 w-5" /> : <Flame className="h-5 w-5" />}
                     </div>
                     <div>
                       <p className="text-sm font-bold">{bill.date}</p>
@@ -111,7 +174,7 @@ export default function PaymentsPage() {
                         <CheckCircle2 className="h-3 w-3" /> {bill.status}
                       </div>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary/50 transition-colors" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/30" />
                   </div>
                 </CardContent>
               </Card>
@@ -120,7 +183,7 @@ export default function PaymentsPage() {
         </section>
 
         {/* Add New Bill */}
-        <section className="pt-4">
+        <section className="pt-4 pb-8">
           <Button variant="outline" className="w-full h-14 rounded-2xl border-dashed border-primary/30 text-primary hover:bg-primary/5 gap-2 border-2 group">
             <div className="p-1 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
               <Plus className="h-4 w-4" />
@@ -139,7 +202,7 @@ export default function PaymentsPage() {
                 {isSuccess ? "Ödeme Başarılı" : "Ödemeyi Onayla"}
               </DialogTitle>
               <DialogDescription className="text-center text-xs text-muted-foreground">
-                Isparta Belediyesi Su ve Atık Su Faturası
+                {selectedBill?.provider} {selectedBill?.title}
               </DialogDescription>
             </DialogHeader>
 
@@ -163,11 +226,10 @@ export default function PaymentsPage() {
                 </div>
               ) : (
                 <>
-                  {/* Payment Summary */}
                   <div className="bg-white rounded-2xl p-6 shadow-soft border border-border/50">
                     <div className="flex justify-between items-center mb-4">
                       <span className="text-sm text-muted-foreground">İşlem Tutarı</span>
-                      <span className="text-xl font-bold">145.50 ₺</span>
+                      <span className="text-xl font-bold">{selectedBill?.amount}</span>
                     </div>
                     <div className="h-px bg-border/50 w-full mb-4" />
                     <div className="flex justify-between items-center">
@@ -184,7 +246,6 @@ export default function PaymentsPage() {
                     </div>
                   </div>
 
-                  {/* Security Hint */}
                   <div className="flex items-center justify-center gap-2 text-muted-foreground">
                     <ShieldCheck className="h-4 w-4 text-primary" />
                     <span className="text-[10px] font-medium">İşleminiz SSL ile güvenli bir şekilde korunmaktadır.</span>
