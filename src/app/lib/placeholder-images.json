@@ -1,0 +1,35 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-rose",
+      "description": "Isparta rose fields",
+      "imageUrl": "https://picsum.photos/seed/isparta1/1200/800",
+      "imageHint": "rose field"
+    },
+    {
+      "id": "library",
+      "description": "Modern library interior",
+      "imageUrl": "https://picsum.photos/seed/library2/800/600",
+      "imageHint": "modern library"
+    },
+    {
+      "id": "parking",
+      "description": "Smart parking lot",
+      "imageUrl": "https://picsum.photos/seed/parking3/800/600",
+      "imageHint": "city parking"
+    },
+    {
+      "id": "announcement-1",
+      "description": "City council meeting",
+      "imageUrl": "https://picsum.photos/seed/city4/800/600",
+      "imageHint": "city hall"
+    },
+    {
+      "id": "announcement-2",
+      "description": "Cultural event poster",
+      "imageUrl": "https://picsum.photos/seed/culture5/800/600",
+      "imageHint": "cultural event"
+    }
+  ]
+}
