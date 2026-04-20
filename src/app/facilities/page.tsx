@@ -97,7 +97,7 @@ export default function FacilitiesPage() {
               <CardContent className="p-0">
                 <div className="flex flex-col sm:flex-row h-full">
                   {/* Image Section */}
-                  <div className="relative w-full sm:w-2/5 h-56 sm:h-auto overflow-hidden">
+                  <div className="relative w-full sm:w-2/5 h-64 sm:h-auto overflow-hidden">
                     <Image 
                       src={facility.image || "https://picsum.photos/seed/facility/800/600"} 
                       alt={facility.name}
@@ -105,48 +105,54 @@ export default function FacilitiesPage() {
                       className="object-cover rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none transition-transform duration-500 hover:scale-105"
                       data-ai-hint="restaurant view"
                     />
-                    <div className="absolute top-3 left-3 px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold text-primary flex items-center gap-1 shadow-sm">
-                      <Utensils className="h-3 w-3" /> Sosyal Tesis
+                    {/* Elit Rozet */}
+                    <div className="absolute top-4 left-4 px-3 py-1.5 bg-white/80 backdrop-blur-md rounded-full text-[10px] font-black text-primary flex items-center gap-2 shadow-lg border border-white/40">
+                      <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Utensils className="h-2.5 w-2.5 text-primary" />
+                      </div>
+                      <span className="uppercase tracking-widest">Sosyal Tesis</span>
                     </div>
                   </div>
 
                   {/* Content Section */}
                   <div className="flex-1 p-6 flex flex-col justify-between space-y-4">
                     <div>
-                      <h3 className="text-lg font-bold text-foreground mb-1 leading-tight">{facility.name}</h3>
-                      <p className="text-[10px] text-primary font-bold uppercase tracking-wider mb-2">{facility.shortDesc}</p>
-                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium uppercase tracking-tighter mb-3">
-                        <MapPin className="h-3 w-3" /> {facility.address}
+                      <h3 className="text-xl font-black text-foreground mb-1 tracking-tight leading-tight">{facility.name}</h3>
+                      <p className="text-[11px] text-primary font-black uppercase tracking-[0.15em] mb-3 leading-relaxed">
+                        {facility.shortDesc}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mb-4">
+                        <MapPin className="h-3.5 w-3.5 text-primary/40" /> {facility.address}
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <p className="text-xs text-muted-foreground/80 leading-relaxed font-medium">
                         {facility.description}
                       </p>
                     </div>
 
                     {/* Occupancy Indicator */}
-                    <div className="space-y-2 pt-4 border-t border-border/50">
-                      <div className="flex justify-between items-center text-[11px] font-bold">
-                        <div className="flex items-center gap-1.5 text-primary uppercase tracking-widest">
-                          <Users className="h-3.5 w-3.5" />
+                    <div className="space-y-3 pt-4 border-t border-border/50">
+                      <div className="flex justify-between items-center text-[11px] font-black">
+                        <div className="flex items-center gap-1.5 text-primary uppercase tracking-[0.1em]">
+                          <Users className="h-4 w-4" />
                           <span>Güncel Durum</span>
                         </div>
                         <span className={cn(
-                          "px-2 py-0.5 rounded-full",
-                          facility.occupancy > 80 ? "bg-red-50 text-red-600" : facility.occupancy > 50 ? "bg-accent/5 text-accent" : "bg-green-50 text-green-600"
+                          "px-3 py-1 rounded-full text-[10px] shadow-sm",
+                          facility.occupancy > 80 ? "bg-red-50 text-red-600 border border-red-100" : facility.occupancy > 50 ? "bg-accent/5 text-accent border border-accent/10" : "bg-green-50 text-green-600 border border-green-100"
                         )}>
-                          %{facility.occupancy} Dolu
+                          %{facility.occupancy} DOLU
                         </span>
                       </div>
                       <Progress 
                         value={facility.occupancy} 
-                        className="h-2 bg-secondary"
+                        className="h-2.5 bg-secondary/50"
                       />
-                      <div className="flex justify-between items-center pt-1">
-                        <p className="text-[10px] font-bold text-muted-foreground/60 italic uppercase tracking-tighter">
-                          Kapasite: 20 Masa
+                      <div className="flex justify-between items-center">
+                        <p className="text-[10px] font-bold text-muted-foreground/50 italic uppercase tracking-widest">
+                          Masa Kapasitesi: 20
                         </p>
-                        <p className="text-[10px] font-bold text-primary italic">
-                          <span className="text-primary">{facility.emptyTables} Boş Masa</span> Mevcut
+                        <p className="text-[10px] font-black text-primary italic bg-primary/5 px-2 py-0.5 rounded-md">
+                          {facility.emptyTables} BOŞ MASA MEVCUT
                         </p>
                       </div>
                     </div>
@@ -155,16 +161,16 @@ export default function FacilitiesPage() {
                     <div className="grid grid-cols-2 gap-3 pt-2">
                       <Button 
                         variant="outline" 
-                        className="h-11 rounded-xl border-primary/20 text-primary hover:bg-primary/5 text-xs font-bold gap-2 shadow-sm"
+                        className="h-12 rounded-xl border-primary/20 text-primary hover:bg-primary/5 text-xs font-black uppercase tracking-widest shadow-sm transition-all active:scale-95"
                         onClick={() => setSelectedFacility(facility)}
                       >
-                        <Utensils className="h-4 w-4" /> Menüyü Gör
+                        Menüyü Gör
                       </Button>
                       <Button 
-                        className="h-11 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold gap-2 shadow-md transition-transform active:scale-95"
+                        className="h-12 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-95 gap-2"
                         onClick={() => handleOpenMaps(facility.mapsUrl)}
                       >
-                        <Navigation className="h-4 w-4" /> Yol Tarifi Al
+                        <Navigation className="h-4 w-4" /> Yol Tarifi
                       </Button>
                     </div>
                   </div>
@@ -178,7 +184,7 @@ export default function FacilitiesPage() {
       {/* Digital Menu Modal */}
       <Dialog open={!!selectedFacility} onOpenChange={(open) => !open && setSelectedFacility(null)}>
         <DialogContent className="max-w-[90vw] sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none bg-[#FDFBF9] shadow-2xl">
-          <div className="relative h-40 w-full shrink-0">
+          <div className="relative h-48 w-full shrink-0">
             {selectedFacility && (
               <Image 
                 src={selectedFacility.image || "https://picsum.photos/seed/facility/800/600"} 
@@ -188,61 +194,61 @@ export default function FacilitiesPage() {
                 data-ai-hint="food close up"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#FDFBF9] via-transparent to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#FDFBF9] via-transparent to-black/30" />
             <button 
               onClick={() => setSelectedFacility(null)}
-              className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-md rounded-full text-foreground shadow-lg active:scale-90 transition-transform"
+              className="absolute top-6 right-6 p-2.5 bg-white/80 backdrop-blur-md rounded-full text-foreground shadow-xl active:scale-90 transition-transform"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="p-8 space-y-6 -mt-8 relative z-10 bg-[#FDFBF9] rounded-t-[2.5rem]">
+          <div className="p-8 space-y-6 -mt-10 relative z-10 bg-[#FDFBF9] rounded-t-[2.5rem]">
             <DialogHeader>
-              <div className="flex justify-center mb-2">
-                 <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-bold uppercase tracking-widest">Dijital Menü</div>
+              <div className="flex justify-center mb-3">
+                 <div className="px-4 py-1.5 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-primary/20">Dijital Menü</div>
               </div>
-              <DialogTitle className="text-center text-2xl font-black text-primary tracking-tight">
+              <DialogTitle className="text-center text-3xl font-black text-primary tracking-tight">
                 {selectedFacility?.name}
               </DialogTitle>
-              <DialogDescription className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Yöresel Isparta Lezzetleri
+              <DialogDescription className="text-center text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em]">
+                Geleneksel Isparta Lezzetleri
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 max-h-[45vh] overflow-y-auto px-1 pr-2 scrollbar-hide">
+            <div className="space-y-4 max-h-[40vh] overflow-y-auto px-1 pr-2 scrollbar-hide">
               {selectedFacility?.menu.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-4 bg-white rounded-2xl shadow-soft border border-border/30 group hover:border-primary/20 transition-all active:scale-[0.98]">
+                <div key={idx} className="flex items-center justify-between p-5 bg-white rounded-3xl shadow-soft border border-border/30 group hover:border-primary/20 transition-all active:scale-[0.98]">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                    <div className="w-11 h-11 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-inner">
                       <item.icon className="h-5 w-5" />
                     </div>
                     <div className="text-left">
-                      <p className="text-sm font-bold text-foreground leading-tight">{item.name}</p>
-                      <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-1">{item.desc}</p>
+                      <p className="text-sm font-black text-foreground leading-tight">{item.name}</p>
+                      <p className="text-[10px] text-muted-foreground font-medium leading-relaxed line-clamp-1">{item.desc}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-black text-primary">{item.price}</p>
+                    <p className="text-sm font-black text-primary tracking-tighter">{item.price}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             <div className="pt-6 border-t border-border/50">
-               <div className="bg-reward/5 border border-reward/20 rounded-2xl p-4 mb-4 flex items-center justify-between animate-pulse-subtle">
+               <div className="bg-reward/5 border border-reward/20 rounded-2xl p-4 mb-5 flex items-center justify-between animate-pulse-subtle">
                   <div className="flex items-center gap-3">
-                     <div className="w-8 h-8 rounded-lg bg-reward/10 flex items-center justify-center text-reward">
-                        <Sparkles className="h-4 w-4" />
+                     <div className="w-9 h-9 rounded-xl bg-reward/10 flex items-center justify-center text-reward shadow-sm">
+                        <Sparkles className="h-5 w-5" />
                      </div>
-                     <p className="text-[11px] font-bold text-reward uppercase tracking-tight">Burada Gül Puan Geçerlidir</p>
+                     <p className="text-[11px] font-black text-reward uppercase tracking-tight">Burada Gül Puan Geçerlidir</p>
                   </div>
                   <Check className="h-4 w-4 text-reward" />
                </div>
 
-               <Button className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-base shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95">
-                  <QrCode className="h-5 w-5" />
-                  QR ile Ödeme Yap
+               <Button className="w-full h-16 rounded-[2rem] bg-primary hover:bg-primary/90 text-white font-black text-base shadow-2xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-95 group">
+                  <QrCode className="h-6 w-6 group-hover:rotate-12 transition-transform" />
+                  QR ile Hızlı Ödeme
                </Button>
             </div>
           </div>
