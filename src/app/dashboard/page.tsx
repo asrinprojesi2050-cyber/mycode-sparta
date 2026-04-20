@@ -1,14 +1,18 @@
 
 "use client"
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Library, Car, Bell, User, MapPin, Info, ArrowRight, Sparkles, CreditCard, Wifi, Droplets, Receipt } from 'lucide-react';
+import { Library, Car, Bell, User, MapPin, Info, ArrowRight, Sparkles, CreditCard, Wifi, Droplets, Receipt, Gift, Bus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export default function Dashboard() {
+  const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
+
   const services = [
     {
       title: "Fatura Ödeme",
@@ -44,6 +48,12 @@ export default function Dashboard() {
     },
   ];
 
+  const rewards = [
+    { title: "1 Saat Ücretsiz Otopark", cost: "1000 Puan", icon: Car },
+    { title: "Halk Otobüsünde 2 Biniş", cost: "500 Puan", icon: Bus },
+    { title: "Kütüphanede 1 Kahve İkramı", cost: "300 Puan", icon: Sparkles },
+  ];
+
   const RoseIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-80">
       <path d="M12 22s-1-4-1-5 2-4 2-4" />
@@ -62,9 +72,9 @@ export default function Dashboard() {
           <h2 className="text-sm font-medium text-muted-foreground">İyi günler,</h2>
           <h1 className="text-2xl font-bold text-primary">Merhaba Vatandaş</h1>
         </div>
-        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm overflow-hidden">
+        <Link href="/profile" className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm overflow-hidden active:scale-95 transition-transform">
           <User className="text-primary h-6 w-6" />
-        </div>
+        </Link>
       </header>
 
       <main className="px-6 space-y-8 animate-fade-in">
@@ -101,6 +111,18 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
+        </section>
+
+        {/* Puan Harcama Butonu */}
+        <section>
+          <Button 
+            onClick={() => setIsRewardModalOpen(true)}
+            variant="outline" 
+            className="w-full h-12 rounded-xl border-reward/30 text-reward hover:bg-reward/5 bg-white shadow-soft flex items-center justify-center gap-2 group transition-all"
+          >
+            <Gift className="h-4 w-4 transition-transform group-hover:scale-110" />
+            <span className="font-bold text-sm">Gül Puanlarımı Kullan</span>
+          </Button>
         </section>
 
         {/* Bekleyen Fatura Hatırlatıcı */}
@@ -212,6 +234,55 @@ export default function Dashboard() {
           </p>
         </section>
       </main>
+
+      {/* Reward Points Modal */}
+      <Dialog open={isRewardModalOpen} onOpenChange={setIsRewardModalOpen}>
+        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl p-6 border-none bg-white">
+          <DialogHeader>
+            <div className="w-12 h-12 bg-reward/10 rounded-full flex items-center justify-center text-reward mb-4 mx-auto">
+              <Gift className="h-6 w-6" />
+            </div>
+            <DialogTitle className="text-center text-xl font-bold">Puanlarımı Kullan</DialogTitle>
+            <DialogDescription className="text-center text-sm">
+              Kazandığın Gül Puanları şehir içinde harcayabilirsin.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-6 space-y-3">
+            <div className="flex justify-between items-center px-4 py-2 bg-reward/5 rounded-lg mb-4">
+              <span className="text-xs font-bold text-reward uppercase tracking-widest">Mevcut Bakiyen</span>
+              <span className="text-lg font-bold text-reward">1250 Puan</span>
+            </div>
+
+            {rewards.map((reward, i) => (
+              <button 
+                key={i} 
+                className="w-full flex items-center justify-between p-4 rounded-xl border border-border hover:border-reward/30 hover:bg-reward/5 transition-all group active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground group-hover:text-reward transition-colors">
+                    <reward.icon className="h-5 w-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-bold">{reward.title}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase">{reward.cost}</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-reward/50 transition-colors" />
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-6 text-center">
+            <button 
+              onClick={() => setIsRewardModalOpen(false)}
+              className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
+            >
+              Şimdilik Kapat
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>

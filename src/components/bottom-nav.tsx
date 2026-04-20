@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Library, Car, Bell, Receipt } from "lucide-react"
+import { Home, Library, Car, Bell, Receipt, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export function BottomNav() {
@@ -14,7 +14,7 @@ export function BottomNav() {
     { label: "Faturalar", href: "/payments", icon: Receipt },
     { label: "Kütüphane", href: "/library", icon: Library },
     { label: "Otopark", href: "/parking", icon: Car },
-    { label: "Duyurular", href: "/announcements", icon: Bell },
+    { label: "Profil", href: "/profile", icon: User },
   ]
 
   if (pathname === "/") return null

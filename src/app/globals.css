@@ -25,6 +25,7 @@
     --input: 349 20% 90%;
     --ring: 349 41% 39%;
     --radius: 0.75rem;
+    --reward: 45 65% 53%;
   }
 }
 
@@ -67,3 +68,14 @@
   animation: pulse-subtle 3s ease-in-out infinite;
 }
 
+.border-reward {
+  border-color: hsl(var(--reward));
+}
+
+.text-reward {
+  color: hsl(var(--reward));
+}
+
+.bg-reward {
+  background-color: hsl(var(--reward));
+}

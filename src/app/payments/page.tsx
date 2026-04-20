@@ -2,7 +2,7 @@
 "use client"
 
 import { useState } from 'react';
-import { ArrowLeft, CreditCard, Receipt, CheckCircle2, Plus, ChevronRight, Droplets, Wallet, ShieldCheck, Loader2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, Receipt, CheckCircle2, Plus, ChevronRight, Droplets, Wallet, ShieldCheck, Loader2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,7 +31,7 @@ export default function PaymentsPage() {
       setTimeout(() => {
         setIsSuccess(false);
         setIsPayModalOpen(false);
-      }, 2000);
+      }, 4000); // Increased time to read the reward message
     }, 1500);
   };
 
@@ -135,67 +135,87 @@ export default function PaymentsPage() {
         <DialogContent className="max-w-[95vw] sm:max-w-md rounded-t-3xl sm:rounded-3xl p-0 overflow-hidden border-none bg-[#FDFBF9]">
           <div className="p-6 space-y-8">
             <DialogHeader>
-              <DialogTitle className="text-center text-xl font-bold text-primary">Ödemeyi Onayla</DialogTitle>
+              <DialogTitle className="text-center text-xl font-bold text-primary">
+                {isSuccess ? "Ödeme Başarılı" : "Ödemeyi Onayla"}
+              </DialogTitle>
               <DialogDescription className="text-center text-xs text-muted-foreground">
                 Isparta Belediyesi Su ve Atık Su Faturası
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-6">
-              {/* Payment Summary */}
-              <div className="bg-white rounded-2xl p-6 shadow-soft border border-border/50">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-sm text-muted-foreground">İşlem Tutarı</span>
-                  <span className="text-xl font-bold">145.50 ₺</span>
-                </div>
-                <div className="h-px bg-border/50 w-full mb-4" />
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-7 bg-primary/10 rounded-md flex items-center justify-center border border-primary/20">
-                      <Wallet className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-xs font-bold">Isparta Kart</p>
-                      <p className="text-[10px] text-muted-foreground">Bakiye: 145.50 ₺</p>
+              {isSuccess ? (
+                <div className="flex flex-col items-center justify-center py-4 space-y-4 animate-in zoom-in-95 duration-300">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                    <CheckCircle2 className="h-12 w-12" />
+                  </div>
+                  <div className="text-center space-y-2">
+                    <p className="text-sm font-medium">İşleminiz başarıyla tamamlandı.</p>
+                    <div className="bg-reward/10 border border-reward/20 rounded-xl p-4 flex flex-col items-center gap-2">
+                       <div className="flex items-center gap-2 text-reward font-bold text-xs uppercase tracking-wider">
+                         <Sparkles className="h-4 w-4" /> Tebrikler!
+                       </div>
+                       <p className="text-xs text-foreground/80 leading-relaxed font-medium">
+                        Bu ödemeden <span className="text-reward font-bold">50 Gül Puan</span> kazandın. Isparta için yaptığın katkıdan dolayı teşekkür ederiz.
+                       </p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="bg-green-50 text-green-600 border-green-100 font-bold text-[9px]">YETERLİ</Badge>
                 </div>
-              </div>
+              ) : (
+                <>
+                  {/* Payment Summary */}
+                  <div className="bg-white rounded-2xl p-6 shadow-soft border border-border/50">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-sm text-muted-foreground">İşlem Tutarı</span>
+                      <span className="text-xl font-bold">145.50 ₺</span>
+                    </div>
+                    <div className="h-px bg-border/50 w-full mb-4" />
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-7 bg-primary/10 rounded-md flex items-center justify-center border border-primary/20">
+                          <Wallet className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs font-bold">Isparta Kart</p>
+                          <p className="text-[10px] text-muted-foreground">Bakiye: 145.50 ₺</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="bg-green-50 text-green-600 border-green-100 font-bold text-[9px]">YETERLİ</Badge>
+                    </div>
+                  </div>
 
-              {/* Security Hint */}
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                <ShieldCheck className="h-4 w-4 text-primary" />
-                <span className="text-[10px] font-medium">İşleminiz SSL ile güvenli bir şekilde korunmaktadır.</span>
-              </div>
+                  {/* Security Hint */}
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                    <ShieldCheck className="h-4 w-4 text-primary" />
+                    <span className="text-[10px] font-medium">İşleminiz SSL ile güvenli bir şekilde korunmaktadır.</span>
+                  </div>
+                </>
+              )}
             </div>
 
             <DialogFooter className="flex-col gap-3">
-              <Button 
-                disabled={isProcessing || isSuccess}
-                onClick={handlePayment}
-                className={cn(
-                  "w-full h-14 rounded-2xl text-lg font-bold shadow-xl transition-all relative overflow-hidden",
-                  isSuccess ? "bg-green-600 hover:bg-green-600" : "bg-primary hover:bg-primary/90"
-                )}
-              >
-                {isProcessing ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                ) : isSuccess ? (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-6 w-6" /> Ödendi
-                  </div>
-                ) : (
-                  "Ödemeyi Onayla"
-                )}
-              </Button>
-              <Button 
-                variant="ghost" 
-                onClick={() => setIsPayModalOpen(false)}
-                className="w-full text-muted-foreground font-medium"
-              >
-                Vazgeç
-              </Button>
+              {!isSuccess && (
+                <>
+                  <Button 
+                    disabled={isProcessing}
+                    onClick={handlePayment}
+                    className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl transition-all relative overflow-hidden bg-primary hover:bg-primary/90"
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    ) : (
+                      "Ödemeyi Onayla"
+                    )}
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setIsPayModalOpen(false)}
+                    className="w-full text-muted-foreground font-medium"
+                  >
+                    Vazgeç
+                  </Button>
+                </>
+              )}
             </DialogFooter>
           </div>
         </DialogContent>
