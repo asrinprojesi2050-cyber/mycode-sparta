@@ -12,21 +12,21 @@ export default function WelcomePage() {
 
   return (
     <main className="min-h-screen w-full flex flex-col bg-[#FDFBF9] overflow-hidden">
-      {/* Visual Header Section */}
+      {/* Visual Header Section - Modern Identity */}
       <div className="relative h-[55vh] w-full shrink-0">
         <div className="absolute inset-0 z-0 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
           <Image
-            src={heroImage?.imageUrl || "https://picsum.photos/seed/isparta/1200/800"}
-            alt="Isparta Şehir Manzarası"
+            src={heroImage?.imageUrl || "https://picsum.photos/seed/isparta-2024/1200/800"}
+            alt="Isparta Şehir Manzarası ve Cam Teras"
             fill
             className="object-cover transition-transform duration-1000 hover:scale-105"
             priority
             data-ai-hint="modern city"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         </div>
 
-        {/* Floating Logo/Badge */}
+        {/* Floating Logo Badge */}
         <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 z-20">
           <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl border border-primary/10">
             <span className="text-primary font-black text-3xl">M</span>
@@ -34,8 +34,8 @@ export default function WelcomePage() {
         </div>
       </div>
 
-      {/* Content Section */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 pt-12 pb-8 text-center animate-fade-in">
+      {/* Content Section - "Hoş Geldiniz" Vision */}
+      <div className="flex-1 flex flex-col items-center justify-center px-8 pt-16 pb-8 text-center animate-fade-in">
         <div className="space-y-4 max-w-sm">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 rounded-full border border-primary/10 mb-2">
             <Sparkles className="h-3 w-3 text-primary" />
@@ -51,7 +51,7 @@ export default function WelcomePage() {
           </p>
         </div>
 
-        {/* Actions */}
+        {/* Action Buttons */}
         <div className="mt-10 w-full max-w-xs space-y-4">
           <Button asChild size="lg" className="w-full rounded-2xl h-14 bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 text-base font-bold group">
             <Link href="/dashboard" className="flex items-center justify-center gap-3">
@@ -60,6 +60,7 @@ export default function WelcomePage() {
             </Link>
           </Button>
 
+          {/* Feature Badges */}
           <div className="flex items-center justify-center gap-6 pt-4">
             <div className="flex flex-col items-center gap-1">
               <div className="p-2 bg-white rounded-lg shadow-soft text-primary">

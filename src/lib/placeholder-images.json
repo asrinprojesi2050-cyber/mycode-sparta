@@ -1,3 +1,34 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-isparta-modern",
+      "description": "Isparta Modern City View and Glass Terrace",
+      "imageUrl": "https://picsum.photos/seed/isparta-modern-2024/1200/800",
+      "imageHint": "modern city"
+    },
+    {
+      "id": "library",
+      "description": "Modern library interior",
+      "imageUrl": "https://picsum.photos/seed/library-modern/800/600",
+      "imageHint": "modern library"
+    },
+    {
+      "id": "parking",
+      "description": "Smart parking lot",
+      "imageUrl": "https://picsum.photos/seed/smart-parking/800/600",
+      "imageHint": "city parking"
+    },
+    {
+      "id": "announcement-1",
+      "description": "City council meeting",
+      "imageUrl": "https://picsum.photos/seed/city-hall/800/600",
+      "imageHint": "city hall"
+    },
+    {
+      "id": "announcement-2",
+      "description": "Cultural event poster",
+      "imageUrl": "https://picsum.photos/seed/festival-art/800/600",
+      "imageHint": "cultural event"
+    }
+  ]
 }
