@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Wifi, QrCode, CreditCard, Plus, ChevronRight, History, Info, Sparkles, X, Loader2, CheckCircle2, Lock } from 'lucide-react';
+import { ArrowLeft, Wifi, QrCode, CreditCard, Plus, ChevronRight, History, Info, Sparkles, X, Loader2, CheckCircle2, Lock, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,6 +23,7 @@ export default function IspartaKartPage() {
   const [qrCountdown, setQrCountdown] = useState(5);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
 
   // QR Interaction Logic
   useEffect(() => {
@@ -63,16 +64,28 @@ export default function IspartaKartPage() {
     }, 300);
   };
 
-  const handleTopup = () => {
+  const handleTopupInitiate = () => {
+    setIsTopupModalOpen(true);
+    setOtpCode('');
+  };
+
+  const handleTopupConfirm = () => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(50);
+    }
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+      }
       setTimeout(() => {
         setIsSuccess(false);
         setIsTopupModalOpen(false);
-      }, 2000);
-    }, 1500);
+        setOtpCode('');
+      }, 3000);
+    }, 2000);
   };
 
   const handleCustomAmountConfirm = () => {
@@ -151,7 +164,7 @@ export default function IspartaKartPage() {
         {/* Enhanced Top-up Section */}
         <section className="space-y-5">
           <div className="flex justify-between items-center">
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Hızlı Bakiye Yükle</h2>
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Tutar Seçin</h2>
           </div>
           
           <div className="grid grid-cols-3 gap-3">
@@ -180,10 +193,13 @@ export default function IspartaKartPage() {
             <Card className="border-none shadow-soft rounded-xl bg-white overflow-hidden border border-border/50">
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-7 bg-primary/5 rounded-md flex items-center justify-center border border-primary/10">
-                    <CreditCard className="h-4 w-4 text-primary" />
+                  <div className="w-10 h-7 bg-primary/5 rounded-md flex items-center justify-center border border-primary/10 overflow-hidden">
+                    <div className="bg-red-600 w-full h-full flex items-center justify-center text-[8px] font-bold text-white">VISA</div>
                   </div>
-                  <p className="text-sm font-bold text-foreground/80 tracking-tight">**** **** **** 4242</p>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Ziraat Bankası</p>
+                    <p className="text-[10px] text-muted-foreground font-medium">**** **** **** 4242</p>
+                  </div>
                 </div>
                 <button className="text-[10px] font-bold text-primary uppercase tracking-wider hover:underline">Değiştir</button>
               </CardContent>
@@ -192,7 +208,7 @@ export default function IspartaKartPage() {
 
           <div className="space-y-4">
             <Button 
-              onClick={() => selectedAmount && setIsTopupModalOpen(true)}
+              onClick={() => selectedAmount && handleTopupInitiate()}
               disabled={!selectedAmount}
               className="w-full h-14 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl font-bold text-base transition-all active:scale-95 flex items-center justify-center gap-2"
             >
@@ -316,49 +332,86 @@ export default function IspartaKartPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Top-up Confirmation Modal */}
+      {/* 3D Secure Confirmation Modal (OTP) */}
       <Dialog open={isTopupModalOpen} onOpenChange={setIsTopupModalOpen}>
-        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl p-6 border-none bg-white">
-          <DialogHeader>
-            <DialogTitle className="text-center text-xl font-bold text-primary">
-              {isSuccess ? "Yükleme Başarılı" : "Yüklemeyi Onayla"}
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-[95vw] sm:max-w-md rounded-3xl p-0 overflow-hidden border-none bg-white shadow-2xl">
+          <div className="p-8 space-y-6">
+            <DialogHeader>
+              <DialogTitle className="text-center text-xl font-black text-primary tracking-tight">
+                {isSuccess ? "İşlem Başarılı" : "Güvenli Ödeme Onayı"}
+              </DialogTitle>
+            </DialogHeader>
 
-          <div className="py-6 flex flex-col items-center justify-center gap-4">
-            {isSuccess ? (
-              <div className="flex flex-col items-center gap-4 animate-in zoom-in-95 duration-300">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                  <CheckCircle2 className="h-10 w-10" />
+            <div className="flex flex-col items-center justify-center">
+              {isProcessing ? (
+                <div className="py-12 flex flex-col items-center gap-4">
+                  <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                  <p className="text-sm font-bold text-primary animate-pulse">İşleminiz Onaylanıyor...</p>
                 </div>
-                <p className="text-sm font-medium text-center">Bakiyeniz güncellendi!</p>
-              </div>
-            ) : (
-              <>
-                <div className="w-full bg-primary/5 rounded-2xl p-6 text-center space-y-2">
-                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Yüklenecek Tutar</p>
-                  <p className="text-4xl font-black text-primary">{selectedAmount} ₺</p>
+              ) : isSuccess ? (
+                <div className="py-10 flex flex-col items-center gap-6 animate-in zoom-in-95 duration-500">
+                  <div className="relative">
+                    <div className="absolute -inset-4 bg-green-500/20 rounded-full animate-ping"></div>
+                    <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center text-white shadow-xl shadow-green-500/30">
+                      <CheckCircle2 className="h-14 w-14" />
+                    </div>
+                  </div>
+                  <div className="text-center space-y-2">
+                    <p className="text-2xl font-black text-green-600">Teşekkürler!</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Bakiyeniz <span className="font-bold text-foreground">{selectedAmount} ₺</span> güncellendi.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground bg-secondary/30 p-4 rounded-xl w-full">
-                  <CreditCard className="h-5 w-5 text-primary" />
-                  <span>**** **** **** 4242 numaralı kartınız kullanılacak.</span>
+              ) : (
+                <div className="w-full space-y-6">
+                  <div className="bg-primary/5 rounded-2xl p-5 border border-primary/10 text-center space-y-1">
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-[0.2em]">Yüklenecek Tutar</p>
+                    <p className="text-3xl font-black text-primary">{selectedAmount} ₺</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="text-center space-y-2">
+                      <p className="text-sm font-bold text-foreground/80">Bankanızdan gelen 6 haneli kodu giriniz</p>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Kod, Ziraat Bankası'nda kayıtlı <span className="font-bold text-primary">05xx xxx 42 42</span> numaralı telefonunuza SMS ile gönderilmiştir.
+                      </p>
+                    </div>
+
+                    <div className="relative group">
+                       <Input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="······"
+                        className="h-16 rounded-2xl bg-secondary/50 border-none text-center text-3xl font-black tracking-[0.5em] focus-visible:ring-2 focus-visible:ring-primary transition-all"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-center gap-2 text-primary">
+                      <ShieldCheck className="h-4 w-4" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">3D Secure Güvenlik Sistemi</span>
+                    </div>
+                  </div>
                 </div>
-              </>
+              )}
+            </div>
+
+            {!isProcessing && !isSuccess && (
+              <DialogFooter className="flex-col gap-3 sm:flex-col">
+                <Button 
+                  onClick={handleTopupConfirm} 
+                  disabled={otpCode.length !== 6}
+                  className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl bg-primary hover:bg-primary/90 transition-all active:scale-95"
+                >
+                  Onayla
+                </Button>
+                <Button variant="ghost" onClick={() => setIsTopupModalOpen(false)} className="w-full text-muted-foreground font-bold uppercase tracking-widest text-[10px]">Vazgeç</Button>
+              </DialogFooter>
             )}
           </div>
-
-          {!isSuccess && (
-            <DialogFooter className="flex-col gap-3">
-              <Button 
-                onClick={handleTopup} 
-                disabled={isProcessing}
-                className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl bg-primary hover:bg-primary/90"
-              >
-                {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : "Ödemeyi Onayla"}
-              </Button>
-              <Button variant="ghost" onClick={() => setIsTopupModalOpen(false)} className="w-full text-muted-foreground">Vazgeç</Button>
-            </DialogFooter>
-          )}
         </DialogContent>
       </Dialog>
 
@@ -425,4 +478,8 @@ export default function IspartaKartPage() {
       <BottomNav />
     </div>
   );
+}
+
+function cn(...inputs: any[]) {
+  return inputs.filter(Boolean).join(' ');
 }
