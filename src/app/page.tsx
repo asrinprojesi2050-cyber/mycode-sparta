@@ -2,90 +2,69 @@
 "use client"
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight, Sparkles, Navigation, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function WelcomePage() {
-  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-isparta-modern');
-
   return (
-    <main className="min-h-screen w-full flex flex-col bg-[#FDFBF9] overflow-hidden">
-      {/* Visual Header Section - Modern Identity */}
-      <div className="relative h-[55vh] w-full shrink-0">
-        <div className="absolute inset-0 z-0 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
-          <Image
-            src="https://www.isparta.bel.tr/resimler/kirazlidere_cam_teras_panoramik.jpg"
-            alt="Isparta Şehir Asistanı - Kirazlıdere Cam Teras"
-            fill
-            className="object-cover transition-transform duration-1000 hover:scale-105"
-            priority
-            data-ai-hint="modern city"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        </div>
-
-        {/* Floating Logo Badge */}
-        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 z-20">
-          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl border border-primary/10">
-            <span className="text-primary font-black text-3xl">M</span>
-          </div>
+    <main className="min-h-screen w-full flex flex-col items-center justify-center bg-[#FDFBF9] overflow-hidden p-8">
+      {/* Brand Identity - Minimalist Logo */}
+      <div className="mb-12 animate-fade-in">
+        <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center shadow-2xl border border-primary/10 mx-auto">
+          <span className="text-primary font-black text-4xl">M</span>
         </div>
       </div>
 
       {/* Content Section - "Hoş Geldiniz" Vision */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 pt-16 pb-8 text-center animate-fade-in">
-        <div className="space-y-4 max-w-sm">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 rounded-full border border-primary/10 mb-2">
-            <Sparkles className="h-3 w-3 text-primary" />
-            <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Akıllı Şehir Portalı</span>
-          </div>
-          
-          <h1 className="text-3xl md:text-4xl font-black text-primary tracking-tight leading-[1.1]">
-            Isparta Şehir Asistanı&apos;na Hoş Geldiniz
-          </h1>
-          
-          <p className="text-sm md:text-base text-muted-foreground font-medium leading-relaxed">
-            Şehrin Zirvesinde, Cam Teras Manzaralı Bir Dijital Deneyim. Isparta&apos;yı parmaklarınızın ucunda keşfedin.
-          </p>
+      <div className="max-w-sm w-full text-center space-y-6 animate-fade-in">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/5 rounded-full border border-primary/10 mx-auto">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <span className="text-xs font-bold text-primary uppercase tracking-[0.2em]">Akıllı Şehir Portalı</span>
         </div>
+        
+        <h1 className="text-4xl font-black text-primary tracking-tight leading-[1.1]">
+          Isparta Şehir Asistanı&apos;na Hoş Geldiniz
+        </h1>
+        
+        <p className="text-base text-muted-foreground font-medium leading-relaxed">
+          Isparta&apos;yı parmaklarınızın ucunda keşfedin. Şehrin dijital dünyasına hızlı ve güvenli bir adım atın.
+        </p>
 
         {/* Action Buttons */}
-        <div className="mt-10 w-full max-w-xs space-y-4">
-          <Button asChild size="lg" className="w-full rounded-2xl h-14 bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 text-base font-bold group">
+        <div className="pt-4 space-y-4">
+          <Button asChild size="lg" className="w-full rounded-2xl h-16 bg-primary text-white hover:bg-primary/90 shadow-2xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 text-lg font-bold group">
             <Link href="/dashboard" className="flex items-center justify-center gap-3">
               Hizmetleri Keşfet
-              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
             </Link>
           </Button>
 
           {/* Feature Badges */}
-          <div className="flex items-center justify-center gap-6 pt-4">
-            <div className="flex flex-col items-center gap-1">
-              <div className="p-2 bg-white rounded-lg shadow-soft text-primary">
-                <Navigation className="h-4 w-4" />
+          <div className="flex items-center justify-center gap-8 pt-8">
+            <div className="flex flex-col items-center gap-2">
+              <div className="p-3 bg-white rounded-xl shadow-soft text-primary border border-primary/5">
+                <Navigation className="h-5 w-5" />
               </div>
-              <span className="text-[9px] font-bold text-muted-foreground uppercase">Navigasyon</span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Navigasyon</span>
             </div>
-            <div className="flex flex-col items-center gap-1">
-              <div className="p-2 bg-white rounded-lg shadow-soft text-primary">
-                <ShieldCheck className="h-4 w-4" />
+            <div className="flex flex-col items-center gap-2">
+              <div className="p-3 bg-white rounded-xl shadow-soft text-primary border border-primary/5">
+                <ShieldCheck className="h-5 w-5" />
               </div>
-              <span className="text-[9px] font-bold text-muted-foreground uppercase">Güvenli</span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Güvenli</span>
             </div>
-            <div className="flex flex-col items-center gap-1">
-              <div className="p-2 bg-white rounded-lg shadow-soft text-primary">
-                <Sparkles className="h-4 w-4" />
+            <div className="flex flex-col items-center gap-2">
+              <div className="p-3 bg-white rounded-xl shadow-soft text-primary border border-primary/5">
+                <Sparkles className="h-5 w-5" />
               </div>
-              <span className="text-[9px] font-bold text-muted-foreground uppercase">Yapay Zeka</span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Yapay Zeka</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Footer Branding */}
-      <div className="pb-8 text-center space-y-1">
+      {/* Footer Branding - Fixed at bottom */}
+      <div className="absolute bottom-8 left-0 right-0 text-center space-y-1">
         <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em]">
           Isparta Belediyesi
         </p>
