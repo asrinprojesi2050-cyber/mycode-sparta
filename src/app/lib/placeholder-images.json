@@ -2,10 +2,10 @@
 {
   "placeholderImages": [
     {
-      "id": "hero-rose",
-      "description": "Isparta rose fields",
-      "imageUrl": "https://picsum.photos/seed/isparta1/1200/800",
-      "imageHint": "rose field"
+      "id": "hero-isparta-modern",
+      "description": "Isparta Modern City View and Glass Terrace",
+      "imageUrl": "https://picsum.photos/seed/isparta-modern/1200/800",
+      "imageHint": "modern city"
     },
     {
       "id": "library",
@@ -34,19 +34,19 @@
     {
       "id": "facility-kirazlidere",
       "description": "Kirazlıdere Panoramic View",
-      "imageUrl": "https://picsum.photos/seed/kirazlidere/800/600",
+      "imageUrl": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
       "imageHint": "panoramic view"
     },
     {
       "id": "facility-gokcay",
       "description": "Gökçay Lake Restaurant",
-      "imageUrl": "https://picsum.photos/seed/gokcay/800/600",
+      "imageUrl": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
       "imageHint": "lake restaurant"
     },
     {
       "id": "facility-museum",
       "description": "Etnografya Museum Garden Cafe",
-      "imageUrl": "https://picsum.photos/seed/museum/800/600",
+      "imageUrl": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
       "imageHint": "museum garden"
     }
   ]
