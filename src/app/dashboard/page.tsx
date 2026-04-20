@@ -21,7 +21,8 @@ import {
   CheckCircle2,
   QrCode,
   X,
-  Loader2
+  Loader2,
+  Share2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
@@ -36,12 +37,14 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Dashboard() {
   const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
   
   const [currentPoints, setCurrentPoints] = useState(1250);
   const [displayPoints, setDisplayPoints] = useState(1250);
@@ -79,6 +82,27 @@ export default function Dashboard() {
         navigator.vibrate([100, 50, 100]);
       }
     }, 1500);
+  };
+
+  const handleShareApp = async () => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: 'MyCode City - Isparta',
+          text: 'Isparta için akıllı şehir mobil uygulamasını keşfedin!',
+          url: window.location.origin,
+        });
+      } catch (error) {
+        console.error('Paylaşım hatası:', error);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(window.location.origin);
+      toast({
+        title: "Link Kopyalandı",
+        description: "Uygulama linki panoya kopyalandı. Artık paylaşabilirsiniz!",
+      });
+    }
   };
 
   const services = [
@@ -142,9 +166,17 @@ export default function Dashboard() {
           <h2 className="text-sm font-medium text-muted-foreground">İyi günler,</h2>
           <h1 className="text-2xl font-bold text-primary tracking-tight">Merhaba Vatandaş</h1>
         </div>
-        <Link href="/profile" className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm overflow-hidden active:scale-95 transition-transform">
-          <User className="text-primary h-6 w-6" />
-        </Link>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleShareApp}
+            className="w-10 h-10 rounded-xl bg-white border border-border shadow-soft flex items-center justify-center text-primary active:scale-95 transition-transform"
+          >
+            <Share2 className="h-5 w-5" />
+          </button>
+          <Link href="/profile" className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm overflow-hidden active:scale-95 transition-transform">
+            <User className="text-primary h-6 w-6" />
+          </Link>
+        </div>
       </header>
 
       <main className="px-6 space-y-8 animate-fade-in">
@@ -207,7 +239,10 @@ export default function Dashboard() {
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
-                    <Droplets className="h-6 w-6" />
+                    <div className="relative">
+                      <Droplets className="h-6 w-6" />
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-white"></div>
+                    </div>
                   </div>
                   <div>
                     <h3 className="font-bold text-sm">Bekleyen Su Faturası</h3>
