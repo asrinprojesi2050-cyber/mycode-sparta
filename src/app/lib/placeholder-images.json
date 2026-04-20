@@ -4,50 +4,32 @@
     {
       "id": "hero-isparta-modern",
       "description": "Isparta Modern City View and Glass Terrace",
-      "imageUrl": "https://picsum.photos/seed/isparta-modern/1200/800",
+      "imageUrl": "https://picsum.photos/seed/isparta-city-2024/1200/800",
       "imageHint": "modern city"
     },
     {
       "id": "library",
       "description": "Modern library interior",
-      "imageUrl": "https://picsum.photos/seed/library2/800/600",
+      "imageUrl": "https://picsum.photos/seed/library-modern/800/600",
       "imageHint": "modern library"
     },
     {
       "id": "parking",
       "description": "Smart parking lot",
-      "imageUrl": "https://picsum.photos/seed/parking3/800/600",
+      "imageUrl": "https://picsum.photos/seed/smart-parking/800/600",
       "imageHint": "city parking"
     },
     {
       "id": "announcement-1",
       "description": "City council meeting",
-      "imageUrl": "https://picsum.photos/seed/city4/800/600",
+      "imageUrl": "https://picsum.photos/seed/city-hall/800/600",
       "imageHint": "city hall"
     },
     {
       "id": "announcement-2",
       "description": "Cultural event poster",
-      "imageUrl": "https://picsum.photos/seed/culture5/800/600",
+      "imageUrl": "https://picsum.photos/seed/festival-art/800/600",
       "imageHint": "cultural event"
-    },
-    {
-      "id": "facility-kirazlidere",
-      "description": "Kirazlıdere Panoramic View",
-      "imageUrl": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
-      "imageHint": "panoramic view"
-    },
-    {
-      "id": "facility-gokcay",
-      "description": "Gökçay Lake Restaurant",
-      "imageUrl": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
-      "imageHint": "lake restaurant"
-    },
-    {
-      "id": "facility-museum",
-      "description": "Etnografya Museum Garden Cafe",
-      "imageUrl": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
-      "imageHint": "museum garden"
     }
   ]
 }
