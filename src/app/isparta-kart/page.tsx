@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 type QrModalState = 'idle' | 'counting' | 'success';
@@ -16,6 +17,8 @@ export default function IspartaKartPage() {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(100);
   const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [isCustomAmountOpen, setIsCustomAmountOpen] = useState(false);
+  const [customAmount, setCustomAmount] = useState('');
   const [qrState, setQrState] = useState<QrModalState>('idle');
   const [qrCountdown, setQrCountdown] = useState(5);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -70,6 +73,14 @@ export default function IspartaKartPage() {
         setIsTopupModalOpen(false);
       }, 2000);
     }, 1500);
+  };
+
+  const handleCustomAmountConfirm = () => {
+    const amount = parseFloat(customAmount);
+    if (!isNaN(amount) && amount > 0) {
+      setSelectedAmount(amount);
+      setIsCustomAmountOpen(false);
+    }
   };
 
   const transactions = [
@@ -147,7 +158,10 @@ export default function IspartaKartPage() {
             {[50, 100, 200].map((amount) => (
               <button
                 key={amount}
-                onClick={() => setSelectedAmount(amount)}
+                onClick={() => {
+                  setSelectedAmount(amount);
+                  setCustomAmount('');
+                }}
                 className={cn(
                   "py-3.5 rounded-xl font-bold transition-all border-2 text-sm",
                   selectedAmount === amount 
@@ -191,7 +205,11 @@ export default function IspartaKartPage() {
               <span className="text-[10px] font-bold uppercase tracking-[0.1em]">Güvenli 256-bit SSL Ödeme</span>
             </div>
             
-            <Button variant="ghost" className="w-full text-xs text-muted-foreground font-bold uppercase tracking-wider h-10">
+            <Button 
+              variant="ghost" 
+              onClick={() => setIsCustomAmountOpen(true)}
+              className="w-full text-xs text-muted-foreground font-bold uppercase tracking-wider h-10"
+            >
               Farklı Tutar Yükle
             </Button>
           </div>
@@ -254,6 +272,49 @@ export default function IspartaKartPage() {
           </div>
         </section>
       </main>
+
+      {/* Custom Amount Modal */}
+      <Dialog open={isCustomAmountOpen} onOpenChange={setIsCustomAmountOpen}>
+        <DialogContent className="max-w-[90vw] sm:max-w-sm rounded-[2.5rem] p-8 border-none bg-white shadow-2xl overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-primary">Tutar Giriniz</DialogTitle>
+            <DialogDescription className="text-center text-xs text-muted-foreground uppercase tracking-wider font-bold">Yüklenecek Özel Bakiyeyi Belirleyin</DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-8 flex flex-col items-center">
+            <div className="relative w-full max-w-[200px]">
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 text-4xl font-black text-muted-foreground/30">₺</span>
+              <Input
+                type="number"
+                inputMode="decimal"
+                value={customAmount}
+                onChange={(e) => setCustomAmount(e.target.value)}
+                placeholder="0"
+                className={cn(
+                  "border-none bg-transparent text-center text-6xl font-black focus-visible:ring-0 h-20 p-0 transition-colors",
+                  customAmount ? "text-primary" : "text-muted-foreground/30"
+                )}
+              />
+            </div>
+            <div className="mt-8 w-full space-y-4">
+              <Button 
+                onClick={handleCustomAmountConfirm}
+                disabled={!customAmount || parseFloat(customAmount) <= 0}
+                className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg shadow-xl"
+              >
+                Onayla
+              </Button>
+              <Button 
+                variant="ghost" 
+                onClick={() => setIsCustomAmountOpen(false)}
+                className="w-full text-muted-foreground font-bold uppercase tracking-wider text-xs"
+              >
+                Vazgeç
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Top-up Confirmation Modal */}
       <Dialog open={isTopupModalOpen} onOpenChange={setIsTopupModalOpen}>
