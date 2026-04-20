@@ -16,7 +16,7 @@ export default function WelcomePage() {
       <div className="relative h-[55vh] w-full shrink-0">
         <div className="absolute inset-0 z-0 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
           <Image
-            src={heroImage?.imageUrl || "https://www.isparta.bel.tr/resimler/kirazlidere_cam_teras_panoramik.jpg"}
+            src="https://www.isparta.bel.tr/resimler/kirazlidere_cam_teras_panoramik.jpg"
             alt="Isparta Şehir Asistanı - Kirazlıdere Cam Teras"
             fill
             className="object-cover transition-transform duration-1000 hover:scale-105"
