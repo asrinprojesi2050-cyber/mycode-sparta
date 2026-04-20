@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Navigation, Utensils, Receipt, User, CreditCard } from "lucide-react"
+import { Home, Navigation, Utensils, User, Wallet } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export function BottomNav() {
@@ -12,8 +12,7 @@ export function BottomNav() {
   const navItems = [
     { label: "Ana Sayfa", href: "/dashboard", icon: Home },
     { label: "Ulaşım", href: "/transport", icon: Navigation },
-    { label: "Kart", href: "/isparta-kart", icon: CreditCard },
-    { label: "Faturalar", href: "/payments", icon: Receipt },
+    { label: "Cüzdan", href: "/isparta-kart", icon: Wallet },
     { label: "Tesisler", href: "/facilities", icon: Utensils },
     { label: "Profil", href: "/profile", icon: User },
   ]

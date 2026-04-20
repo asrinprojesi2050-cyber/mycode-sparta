@@ -18,6 +18,12 @@ import {
   Lock,
   ShieldCheck,
   CreditCard as CardIcon,
+  Droplets,
+  Flame,
+  Zap,
+  Globe,
+  Receipt,
+  Wallet
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -34,7 +40,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 type QrModalState = 'idle' | 'counting' | 'success';
 
@@ -51,7 +60,31 @@ const INITIAL_CARDS: RegisteredCard[] = [
   { id: '2', bank: 'İş Bankası', lastFour: '1234', type: 'MASTERCARD', isDefault: false },
 ];
 
+const categories = [
+  { id: 'water', label: 'Su', provider: 'Isparta Belediyesi', icon: Droplets, color: 'text-blue-500' },
+  { id: 'gas', label: 'Doğalgaz', provider: 'Torosgaz', icon: Flame, color: 'text-orange-500' },
+  { id: 'electric', label: 'Elektrik', provider: 'CK Akdeniz', icon: Zap, color: 'text-yellow-500' },
+  { id: 'internet', label: 'İnternet', provider: 'Netİnternet', icon: Globe, color: 'text-purple-500' },
+];
+
+const billsData: Record<string, any[]> = {
+  water: [
+    { id: 24001, title: 'Haziran 2024 Faturası', dueDate: '25.06.2024', amount: '145.50 ₺', provider: 'Isparta Belediyesi' },
+  ],
+  gas: [
+    { id: 35001, title: 'Mayıs Ayı Faturası', dueDate: '22.05.2024', amount: '210.25 ₺', provider: 'Torosgaz' },
+  ],
+  electric: [
+    { id: 46001, title: 'Dönem Faturası', dueDate: '20.06.2024', amount: '385.40 ₺', provider: 'CK Akdeniz' },
+  ],
+  internet: [
+    { id: 57001, title: 'ADSL/Fiber Faturası', dueDate: '18.06.2024', amount: '299.90 ₺', provider: 'Netİnternet' },
+  ]
+};
+
 export default function IspartaKartPage() {
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('card');
   const [selectedAmount, setSelectedAmount] = useState<number | null>(100);
   const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
@@ -64,6 +97,12 @@ export default function IspartaKartPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   
+  // Billing States
+  const [selectedCategory, setSelectedCategory] = useState('water');
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [selectedBill, setSelectedBill] = useState<any>(null);
+  const [isAddBillModalOpen, setIsAddBillModalOpen] = useState(false);
+
   // Card Management States
   const [registeredCards, setRegisteredCards] = useState<RegisteredCard[]>(INITIAL_CARDS);
   const [activeCardId, setActiveCardId] = useState('1');
@@ -90,19 +129,14 @@ export default function IspartaKartPage() {
           navigator.vibrate([100, 50, 100]);
         }
         setQrState('success');
-
-        timer = setTimeout(() => {
-          handleCloseQr();
-        }, 3000);
+        timer = setTimeout(() => handleCloseQr(), 3000);
       }
     }
     return () => clearInterval(timer);
   }, [isQrModalOpen, qrState, qrCountdown]);
 
   const handleOpenQr = () => {
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(50);
-    }
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
     setQrCountdown(5);
     setQrState('counting');
     setIsQrModalOpen(true);
@@ -116,36 +150,29 @@ export default function IspartaKartPage() {
     }, 300);
   };
 
-  const handleTopupInitiate = () => {
-    setIsTopupModalOpen(true);
-    setOtpCode('');
-  };
-
   const handleTopupConfirm = () => {
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(50);
-    }
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate([100, 50, 100]);
-      }
       setTimeout(() => {
         setIsSuccess(false);
         setIsTopupModalOpen(false);
-        setOtpCode('');
       }, 3000);
     }, 2000);
   };
 
-  const handleCustomAmountConfirm = () => {
-    const amount = parseFloat(customAmount);
-    if (!isNaN(amount) && amount > 0) {
-      setSelectedAmount(amount);
-      setIsCustomAmountOpen(false);
-    }
+  const handleBillPayment = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsSuccess(false);
+        setIsPayModalOpen(false);
+        setSelectedBill(null);
+      }, 3000);
+    }, 2000);
   };
 
   const handleAddNewCard = () => {
@@ -156,23 +183,9 @@ export default function IspartaKartPage() {
       type: 'VISA',
       isDefault: newCardData.setAsDefault
     };
-
-    if (newCardData.setAsDefault) {
-      setRegisteredCards(prev => prev.map(c => ({ ...c, isDefault: false })).concat(newCard));
-    } else {
-      setRegisteredCards(prev => [...prev, newCard]);
-    }
-    
-    setActiveCardId(newCard.id);
+    setRegisteredCards(prev => [...prev, newCard]);
     setIsChangeCardOpen(false);
-    setNewCardData({ name: '', number: '', expiry: '', cvv: '', setAsDefault: false });
   };
-
-  const transactions = [
-    { id: 1, title: 'Halk Otobüsü - Hat 18', date: 'Bugün, 08:45', amount: '-15.00 ₺', type: 'payment' },
-    { id: 2, title: 'Bakiye Yükleme', date: 'Dün, 14:20', amount: '+100.00 ₺', type: 'topup' },
-    { id: 3, title: 'Halk Otobüsü - Hat 4', date: '12 Haz, 17:30', amount: '-15.00 ₺', type: 'payment' },
-  ];
 
   const RoseIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-40">
@@ -190,506 +203,223 @@ export default function IspartaKartPage() {
         <Link href="/dashboard" className="p-2 bg-white rounded-xl shadow-soft border border-border/50">
           <ArrowLeft className="h-5 w-5 text-primary" />
         </Link>
-        <h1 className="text-xl font-bold text-primary tracking-tight">Isparta Kartım</h1>
+        <h1 className="text-xl font-bold text-primary tracking-tight">Cüzdanım</h1>
       </header>
 
-      <main className="px-6 pt-6 animate-fade-in space-y-8 max-w-md mx-auto">
-        {/* Virtual Card Section */}
-        <section className="flex justify-center">
-          <div className="relative group w-full max-w-[340px]">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-accent/50 rounded-[1.5rem] blur-xl opacity-20 transition duration-1000 group-hover:opacity-40"></div>
-            <Card className="relative border-none bg-gradient-to-br from-[#8D3B4A] via-[#A64459] to-[#8D3B4A] text-white rounded-[1.25rem] overflow-hidden shadow-2xl aspect-[1.58/1] flex flex-col justify-between p-6 border border-white/10">
-              <div className="flex justify-between items-start relative z-10">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1 bg-white/10 rounded-lg backdrop-blur-md">
-                      <RoseIcon />
+      <main className="px-6 pt-6 animate-fade-in space-y-6 max-w-md mx-auto">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 h-12 rounded-2xl bg-white border border-border/50 p-1 mb-8 shadow-sm">
+            <TabsTrigger value="card" className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white font-bold text-xs">Kart Yönetimi</TabsTrigger>
+            <TabsTrigger value="bills" className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white font-bold text-xs">Faturalar</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="card" className="space-y-8 mt-0">
+            {/* Virtual Card */}
+            <section className="flex justify-center">
+              <div className="relative group w-full">
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-accent/50 rounded-[1.5rem] blur-xl opacity-20"></div>
+                <Card className="relative border-none bg-gradient-to-br from-[#8D3B4A] via-[#A64459] to-[#8D3B4A] text-white rounded-[1.25rem] overflow-hidden shadow-2xl aspect-[1.58/1] flex flex-col justify-between p-6">
+                  <div className="flex justify-between items-start relative z-10">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2 mb-1">
+                        <RoseIcon />
+                        <span className="font-bold text-[10px] tracking-tight uppercase">MyCode City</span>
+                      </div>
+                      <p className="text-[8px] text-white/60 uppercase tracking-[0.2em] font-medium">Sanal Ulaşım Kartı</p>
                     </div>
-                    <span className="font-bold text-[10px] tracking-tight uppercase">MyCode City</span>
-                  </div>
-                  <p className="text-[8px] text-white/60 uppercase tracking-[0.2em] font-medium">Sanal Ulaşım Kartı</p>
-                </div>
-                <Wifi className="h-4 w-4 text-white/70 rotate-90" />
-              </div>
-
-              <div className="relative z-10">
-                <p className="text-[9px] text-white/50 uppercase tracking-widest mb-0.5 font-bold">Güncel Bakiye</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold tracking-tighter text-white">142.50</span>
-                  <span className="text-lg font-medium opacity-80 text-white">₺</span>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-end relative z-10">
-                <div className="space-y-0.5">
-                  <p className="text-[9px] font-mono tracking-[0.2em] opacity-40">5432 **** **** 1234</p>
-                  <p className="text-[8px] font-bold uppercase tracking-wider opacity-60">Vatandaş Kart</p>
-                </div>
-                <div className="h-6 w-9 bg-white/20 rounded-sm backdrop-blur-sm border border-white/10 flex items-center justify-center">
-                  <div className="w-4 h-2.5 bg-gradient-to-r from-yellow-400/80 to-yellow-600/80 rounded-[1px]" />
-                </div>
-              </div>
-            </Card>
-          </div>
-        </section>
-
-        {/* Enhanced Top-up Section */}
-        <section className="space-y-5">
-          <div className="flex justify-between items-center">
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Tutar Seçin</h2>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            {[50, 100, 200].map((amount) => (
-              <button
-                key={amount}
-                onClick={() => {
-                  setSelectedAmount(amount);
-                  setCustomAmount('');
-                }}
-                className={cn(
-                  'py-3.5 rounded-xl font-bold transition-all border-2 text-sm',
-                  selectedAmount === amount
-                    ? 'bg-primary text-white border-primary shadow-lg scale-105'
-                    : 'bg-white text-primary border-transparent shadow-soft'
-                )}
-              >
-                {amount} ₺
-              </button>
-            ))}
-          </div>
-
-          {/* Payment Method Selector */}
-          <div className="space-y-3">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Ödeme Yöntemi</h3>
-            <Card className="border-none shadow-soft rounded-xl bg-white overflow-hidden border border-border/50">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-7 bg-primary/5 rounded-md flex items-center justify-center border border-primary/10 overflow-hidden">
-                    <div className={cn(
-                      "w-full h-full flex items-center justify-center text-[8px] font-bold text-white",
-                      activeCard.type === 'VISA' ? "bg-blue-600" : "bg-red-600"
-                    )}>
-                      {activeCard.type}
-                    </div>
+                    <Wifi className="h-4 w-4 text-white/70 rotate-90" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-foreground">{activeCard.bank}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium">**** **** **** {activeCard.lastFour}</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setIsChangeCardOpen(true)}
-                  className="text-[10px] font-bold text-primary uppercase tracking-wider hover:underline"
-                >
-                  Değiştir
-                </button>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="space-y-4">
-            <Button
-              onClick={() => selectedAmount && handleTopupInitiate()}
-              disabled={!selectedAmount}
-              className="w-full h-14 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl font-bold text-base transition-all active:scale-95 flex items-center justify-center gap-2"
-            >
-              <Plus className="h-5 w-5" />
-              {selectedAmount ? `${selectedAmount} ₺ Yükle (Kredi Kartı ile)` : 'Tutar Seçiniz'}
-            </Button>
-
-            <div className="flex items-center justify-center gap-2 text-muted-foreground/60">
-              <Lock className="h-3.5 w-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.1em]">Güvenli 256-bit SSL Ödeme</span>
-            </div>
-
-            <Button
-              variant="ghost"
-              onClick={() => setIsCustomAmountOpen(true)}
-              className="w-full text-xs text-muted-foreground font-bold uppercase tracking-wider h-10"
-            >
-              Farklı Tutar Yükle
-            </Button>
-          </div>
-        </section>
-
-        {/* QR Button Section */}
-        <section>
-          <button onClick={handleOpenQr} className="w-full relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-accent to-primary rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
-            <div className="relative w-full h-20 rounded-2xl bg-white border border-accent/20 flex items-center justify-between px-6 shadow-soft overflow-hidden active:scale-[0.98] transition-all">
-              <div className="absolute inset-0 bg-accent/5 animate-pulse opacity-50"></div>
-              <div className="flex items-center gap-4 relative z-10">
-                <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center text-accent">
-                  <QrCode className="h-6 w-6" />
-                </div>
-                <div className="text-left">
-                  <p className="text-base font-black text-accent tracking-tight">QR Okut & Bin</p>
-                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Hızlı Dijital Biniş</p>
-                </div>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center shadow-lg group-hover:translate-x-1 transition-transform relative z-10">
-                <ChevronRight className="h-5 w-5" />
-              </div>
-            </div>
-          </button>
-        </section>
-
-        {/* Recent Activity */}
-        <section className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Son Hareketler</h2>
-            <Link href="/isparta-kart/history" className="text-[10px] font-bold text-primary uppercase tracking-wider">Tümünü Gör</Link>
-          </div>
-          <div className="space-y-3">
-            {transactions.map((t) => (
-              <Card key={t.id} className="border-none shadow-soft rounded-2xl bg-white overflow-hidden active:scale-[0.99] transition-transform">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-9 h-9 rounded-lg flex items-center justify-center",
-                      t.type === 'payment' ? "bg-red-50 text-red-500" : "bg-green-50 text-green-500"
-                    )}>
-                      {t.type === 'payment' ? <History className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold">{t.title}</p>
-                      <p className="text-[9px] text-muted-foreground font-medium">{t.date}</p>
+                    <p className="text-[9px] text-white/50 uppercase tracking-widest mb-0.5 font-bold">Güncel Bakiye</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-bold tracking-tighter">142.50</span>
+                      <span className="text-lg font-medium opacity-80">₺</span>
                     </div>
                   </div>
-                  <p className={cn("font-bold text-xs", t.type === 'payment' ? "text-foreground" : "text-green-600")}>
-                    {t.amount}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-      </main>
+                  <div className="flex justify-between items-end relative z-10">
+                    <p className="text-[9px] font-mono tracking-[0.2em] opacity-40">5432 **** **** 1234</p>
+                    <div className="h-6 w-9 bg-white/20 rounded-sm backdrop-blur-sm border border-white/10 flex items-center justify-center">
+                      <div className="w-4 h-2.5 bg-yellow-500/80 rounded-[1px]" />
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </section>
 
-      {/* Change Card Modal */}
-      <Dialog open={isChangeCardOpen} onOpenChange={setIsChangeCardOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none bg-[#FDFBF9] shadow-2xl">
-          <div className="p-8 space-y-8 max-h-[85vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-primary">Ödeme Yöntemi</DialogTitle>
-              <DialogDescription className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                Kayıtlı Kartlarım
-              </DialogDescription>
-            </DialogHeader>
+            {/* Quick Actions */}
+            <section className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <Button onClick={handleOpenQr} className="h-16 rounded-2xl bg-accent text-white hover:bg-accent/90 shadow-lg font-bold gap-3">
+                  <QrCode className="h-6 w-6" /> QR Okut
+                </Button>
+                <Button onClick={() => setIsTopupModalOpen(true)} className="h-16 rounded-2xl bg-white border border-primary/20 text-primary hover:bg-primary/5 shadow-soft font-bold gap-3">
+                  <Plus className="h-6 w-6" /> Bakiye Yükle
+                </Button>
+              </div>
+            </section>
 
-            {/* Registered Cards List */}
-            <div className="space-y-3">
-              {registeredCards.map((card) => (
-                <Card 
-                  key={card.id} 
-                  onClick={() => setActiveCardId(card.id)}
+            {/* Recent History */}
+            <section className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Son Hareketler</h2>
+                <Link href="/isparta-kart/history" className="text-[10px] font-bold text-primary uppercase">Tümünü Gör</Link>
+              </div>
+              <div className="space-y-3">
+                {[1, 2].map((i) => (
+                  <Card key={i} className="border-none shadow-soft rounded-2xl bg-white">
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
+                          <History className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold">Halk Otobüsü - Hat 18</p>
+                          <p className="text-[9px] text-muted-foreground font-medium">Bugün, 08:45</p>
+                        </div>
+                      </div>
+                      <p className="font-bold text-xs text-primary">-15.00 ₺</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </section>
+          </TabsContent>
+
+          <TabsContent value="bills" className="space-y-6 mt-0">
+            {/* Categories */}
+            <section className="grid grid-cols-4 gap-2">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
                   className={cn(
-                    "border-2 transition-all cursor-pointer rounded-2xl overflow-hidden shadow-sm",
-                    activeCardId === card.id ? "border-primary bg-primary/5" : "border-transparent bg-white"
+                    "flex flex-col items-center p-3 rounded-2xl bg-white transition-all border-2",
+                    selectedCategory === cat.id ? "border-primary shadow-lg scale-105" : "border-transparent shadow-soft opacity-60"
                   )}
                 >
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={cn(
-                        "w-12 h-8 rounded-md flex items-center justify-center text-[8px] font-bold text-white",
-                        card.type === 'VISA' ? "bg-blue-600" : "bg-red-600"
-                      )}>
-                        {card.type}
-                      </div>
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-1">
+                    <cat.icon className={cn("h-5 w-5", cat.color)} />
+                  </div>
+                  <span className="text-[8px] font-bold text-primary uppercase">{cat.label}</span>
+                </button>
+              ))}
+            </section>
+
+            {/* Unpaid Bills */}
+            <section className="space-y-4">
+              <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Bekleyen Borçlar</h2>
+              {billsData[selectedCategory]?.map((bill) => (
+                <Card key={bill.id} className="border-none shadow-soft rounded-2xl overflow-hidden bg-white">
+                  <CardContent className="p-5">
+                    <div className="flex justify-between items-start mb-4">
                       <div>
-                        <p className="text-sm font-bold">{card.bank}</p>
-                        <p className="text-[10px] text-muted-foreground">**** **** **** {card.lastFour}</p>
+                        <h3 className="font-bold text-sm leading-tight">{bill.title}</h3>
+                        <p className="text-[10px] text-muted-foreground uppercase">{bill.provider}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-primary">{bill.amount}</p>
+                        <p className="text-[9px] font-bold text-red-500 uppercase">Son: {bill.dueDate}</p>
                       </div>
                     </div>
-                    {activeCardId === card.id && <CheckCircle2 className="h-5 w-5 text-primary" />}
+                    <Button onClick={() => { setSelectedBill(bill); setIsPayModalOpen(true); }} className="w-full bg-primary hover:bg-primary/90 h-11 rounded-xl">Hemen Öde</Button>
                   </CardContent>
                 </Card>
               ))}
+            </section>
+
+            <Button onClick={() => setIsAddBillModalOpen(true)} variant="outline" className="w-full h-14 rounded-2xl border-dashed border-primary/30 text-primary gap-2 border-2">
+              <Plus className="h-4 w-4" /> Yeni Abonelik Ekle
+            </Button>
+          </TabsContent>
+        </Tabs>
+      </main>
+
+      {/* QR Modal */}
+      <Dialog open={isQrModalOpen} onOpenChange={handleCloseQr}>
+        <DialogContent className="max-w-[85vw] sm:max-w-sm rounded-[2.5rem] p-8 border-none bg-white shadow-2xl overflow-hidden">
+          <div className="flex flex-col items-center gap-8 py-4">
+            <div className="text-center space-y-1">
+              <DialogTitle className="text-2xl font-black text-accent tracking-tight">Dijital Biniş</DialogTitle>
+              <DialogDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Kullanıma Hazır</DialogDescription>
             </div>
-
-            <div className="pt-2 border-t border-border/50">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">Yeni Kart Ekle</h3>
-              
-              <div className="space-y-5">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-wider ml-1">Kart Üzerindeki İsim</Label>
-                  <Input 
-                    placeholder="AD SOYAD" 
-                    className="h-12 rounded-xl border-border bg-white focus-visible:ring-primary focus-visible:border-primary"
-                    value={newCardData.name}
-                    onChange={(e) => setNewCardData({...newCardData, name: e.target.value.toUpperCase()})}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-wider ml-1">Kart Numarası</Label>
-                  <div className="relative">
-                    <Input 
-                      placeholder="0000 0000 0000 0000" 
-                      maxLength={19}
-                      className="h-12 rounded-xl border-border bg-white focus-visible:ring-primary focus-visible:border-primary pl-10"
-                      value={newCardData.number}
-                      onChange={(e) => {
-                        let val = e.target.value.replace(/\D/g, '');
-                        let formatted = val.match(/.{1,4}/g)?.join(' ') || val;
-                        setNewCardData({...newCardData, number: formatted});
-                      }}
-                    />
-                    <CardIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-bold uppercase tracking-wider ml-1">S.K.T.</Label>
-                    <Input 
-                      placeholder="AA/YY" 
-                      maxLength={5}
-                      className="h-12 rounded-xl border-border bg-white focus-visible:ring-primary focus-visible:border-primary"
-                      value={newCardData.expiry}
-                      onChange={(e) => {
-                        let val = e.target.value.replace(/\D/g, '');
-                        if (val.length >= 2) val = val.slice(0, 2) + '/' + val.slice(2, 4);
-                        setNewCardData({...newCardData, expiry: val});
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-bold uppercase tracking-wider ml-1">CVV</Label>
-                    <Input 
-                      placeholder="000" 
-                      maxLength={3}
-                      className="h-12 rounded-xl border-border bg-white focus-visible:ring-primary focus-visible:border-primary"
-                      value={newCardData.cvv}
-                      onChange={(e) => setNewCardData({...newCardData, cvv: e.target.value.replace(/\D/g, '')})}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between py-2">
-                  <div className="space-y-0.5">
-                    <Label className="text-xs font-bold">Varsayılan Yap</Label>
-                    <p className="text-[10px] text-muted-foreground">Ödemeler için bu kartı öncelikli kullan</p>
-                  </div>
-                  <Switch 
-                    checked={newCardData.setAsDefault}
-                    onCheckedChange={(checked) => setNewCardData({...newCardData, setAsDefault: checked})}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter className="flex-col gap-3">
-              <Button 
-                onClick={handleAddNewCard}
-                className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg shadow-xl"
-              >
-                Bu Kartı Kaydet ve Kullan
-              </Button>
-              <Button 
-                variant="ghost" 
-                onClick={() => setIsChangeCardOpen(false)}
-                className="w-full text-muted-foreground font-bold uppercase tracking-widest text-[10px]"
-              >
-                İptal
-              </Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Custom Amount Modal */}
-      <Dialog open={isCustomAmountOpen} onOpenChange={setIsCustomAmountOpen}>
-        <DialogContent className="max-w-[90vw] sm:max-w-sm rounded-[2.5rem] p-8 border-none bg-white shadow-2xl overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="text-center text-xl font-bold text-primary">Tutar Giriniz</DialogTitle>
-            <DialogDescription className="text-center text-xs text-muted-foreground uppercase tracking-wider font-bold">
-              Yüklenecek Özel Bakiyeyi Belirleyin
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-8 flex flex-col items-center">
-            <div className="relative w-full max-w-[200px]">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 text-4xl font-black text-muted-foreground/30">₺</span>
-              <Input
-                type="number"
-                inputMode="decimal"
-                value={customAmount}
-                onChange={(e) => setCustomAmount(e.target.value)}
-                placeholder="0"
-                className={cn(
-                  'border-none bg-transparent text-center text-6xl font-black focus-visible:ring-0 h-20 p-0 transition-colors',
-                  customAmount ? 'text-primary' : 'text-muted-foreground/30'
-                )}
-              />
-            </div>
-            <div className="mt-8 w-full space-y-4">
-              <Button
-                onClick={handleCustomAmountConfirm}
-                disabled={!customAmount || parseFloat(customAmount) <= 0}
-                className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg shadow-xl"
-              >
-                Onayla
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => setIsCustomAmountOpen(false)}
-                className="w-full text-muted-foreground font-bold uppercase tracking-wider text-xs"
-              >
-                Vazgeç
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* 3D Secure Confirmation Modal (OTP) */}
-      <Dialog open={isTopupModalOpen} onOpenChange={setIsTopupModalOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md rounded-3xl p-0 overflow-hidden border-none bg-white shadow-2xl">
-          <div className="p-8 space-y-6">
-            <DialogHeader>
-              <DialogTitle className="text-center text-xl font-black text-primary tracking-tight">
-                {isSuccess ? 'İşlem Başarılı' : 'Güvenli Ödeme Onayı'}
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="flex flex-col items-center justify-center">
-              {isProcessing ? (
-                <div className="py-12 flex flex-col items-center gap-4">
-                  <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                  <p className="text-sm font-bold text-primary animate-pulse">İşleminiz Onaylanıyor...</p>
-                </div>
-              ) : isSuccess ? (
-                <div className="py-10 flex flex-col items-center gap-6 animate-in zoom-in-95 duration-500">
-                  <div className="relative">
-                    <div className="absolute -inset-4 bg-green-500/20 rounded-full animate-ping"></div>
-                    <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center text-white shadow-xl shadow-green-500/30">
-                      <CheckCircle2 className="h-14 w-14" />
-                    </div>
-                  </div>
-                  <div className="text-center space-y-2">
-                    <p className="text-2xl font-black text-green-600">Teşekkürler!</p>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Bakiyeniz <span className="font-bold text-foreground">{selectedAmount} ₺</span> güncellendi.
-                    </p>
-                  </div>
+            <div className={cn(
+              "relative p-6 bg-white rounded-[2rem] shadow-inner border-4 transition-all duration-500",
+              qrState === 'success' ? "border-green-500" : "border-accent/20"
+            )}>
+              {qrState === 'success' ? (
+                <div className="w-48 h-48 flex items-center justify-center animate-in zoom-in">
+                  <CheckCircle2 className="h-24 w-24 text-green-500" />
                 </div>
               ) : (
-                <div className="w-full space-y-6">
-                  <div className="bg-primary/5 rounded-2xl p-5 border border-primary/10 text-center space-y-1">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-[0.2em]">Yüklenecek Tutar</p>
-                    <p className="text-3xl font-black text-primary">{selectedAmount} ₺</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="text-center space-y-2">
-                      <p className="text-sm font-bold text-foreground/80">Bankanızdan gelen 6 haneli kodu giriniz</p>
-                      <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Kod, <span className="font-bold text-primary">{activeCard.bank}</span>'nda kayıtlı <span className="font-bold text-primary">05xx xxx 42 42</span> numaralı telefonunuza SMS ile gönderilmiştir.
-                      </p>
-                    </div>
-
-                    <div className="relative group">
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={6}
-                        value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
-                        placeholder="······"
-                        className="h-16 rounded-2xl bg-secondary/50 border-none text-center text-3xl font-black tracking-[0.5em] focus-visible:ring-2 focus-visible:ring-primary transition-all"
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-center gap-2 text-primary">
-                      <ShieldCheck className="h-4 w-4" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest">3D Secure Güvenlik Sistemi</span>
-                    </div>
-                  </div>
-                </div>
+                <QrCode className="h-48 w-48 text-accent animate-pulse" />
               )}
             </div>
+            {qrState === 'counting' && (
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border-2 border-accent text-accent font-bold text-xl">
+                {qrCountdown}
+              </div>
+            )}
+            <Button variant="ghost" onClick={handleCloseQr} className="p-2 rounded-full"><X className="h-6 w-6" /></Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-            {!isProcessing && !isSuccess && (
-              <DialogFooter className="flex-col gap-3 sm:flex-col">
-                <Button
-                  onClick={handleTopupConfirm}
-                  disabled={otpCode.length !== 6}
-                  className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl bg-primary hover:bg-primary/90 transition-all active:scale-95"
-                >
-                  Onayla
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => setIsTopupModalOpen(false)}
-                  className="w-full text-muted-foreground font-bold uppercase tracking-widest text-[10px]"
-                >
-                  Vazgeç
-                </Button>
-              </DialogFooter>
+      {/* Topup Modal */}
+      <Dialog open={isTopupModalOpen} onOpenChange={setIsTopupModalOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-md rounded-3xl p-6 bg-white">
+          <DialogHeader><DialogTitle className="text-center">Bakiye Yükleme</DialogTitle></DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="grid grid-cols-3 gap-2">
+              {[50, 100, 200].map(amt => (
+                <Button key={amt} variant={selectedAmount === amt ? 'default' : 'outline'} onClick={() => setSelectedAmount(amt)} className="h-12 rounded-xl">{amt} ₺</Button>
+              ))}
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase ml-1">Kayıtlı Kart</Label>
+              <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="h-5 w-5 text-primary" />
+                  <div><p className="text-xs font-bold">{activeCard.bank}</p><p className="text-[10px] text-muted-foreground">**** {activeCard.lastFour}</p></div>
+                </div>
+                <Button variant="ghost" size="sm" className="text-[10px] font-bold text-primary" onClick={() => setIsChangeCardOpen(true)}>Değiştir</Button>
+              </div>
+            </div>
+            {isProcessing ? (
+              <div className="flex flex-col items-center gap-3 py-6"><Loader2 className="h-8 w-8 text-primary animate-spin" /><p className="text-xs font-bold">Onaylanıyor...</p></div>
+            ) : isSuccess ? (
+              <div className="flex flex-col items-center gap-3 py-6 text-green-600"><CheckCircle2 className="h-10 w-10 animate-in zoom-in" /><p className="text-xs font-bold">Bakiye Eklendi!</p></div>
+            ) : (
+              <Button onClick={handleTopupConfirm} className="w-full h-14 rounded-2xl text-lg font-bold">Ödemeyi Onayla</Button>
             )}
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* QR Code Modal */}
-      <Dialog open={isQrModalOpen} onOpenChange={handleCloseQr}>
-        <DialogContent className="max-w-[85vw] sm:max-w-sm rounded-[2.5rem] p-8 border-none bg-white/95 backdrop-blur-xl shadow-2xl overflow-hidden">
-          <div className="flex flex-col items-center gap-8 py-4">
-            {qrState === 'counting' ? (
-              <div className="flex flex-col items-center gap-8 w-full animate-in fade-in zoom-in duration-300">
-                <div className="text-center space-y-1">
-                  <DialogTitle className="text-2xl font-black text-accent tracking-tight">Dijital Biniş</DialogTitle>
-                  <DialogDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Kullanıma Hazır</DialogDescription>
-                </div>
-
-                <div className="relative p-6 bg-white rounded-[2rem] shadow-inner border-4 border-accent/20 group">
-                  <div className="absolute inset-0 bg-accent/5 animate-pulse rounded-[1.8rem]"></div>
-                  <QrCode className="h-48 w-48 text-accent relative z-10" />
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-accent/30 animate-[scan_2s_linear_infinite] blur-sm z-20"></div>
-                </div>
-
-                <div className="text-center space-y-4 w-full">
-                  <p className="text-xs font-medium text-foreground/70">Otobüsteki cihaza okutunuz</p>
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border-2 border-accent text-accent font-bold text-xl">
-                    {qrCountdown}
-                  </div>
+      {/* Payment Modal */}
+      <Dialog open={isPayModalOpen} onOpenChange={setIsPayModalOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-md rounded-3xl p-6 bg-white">
+          <DialogHeader><DialogTitle className="text-center">Fatura Öde</DialogTitle></DialogHeader>
+          <div className="space-y-6 py-4 text-center">
+            <div className="bg-primary/5 p-6 rounded-2xl">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">{selectedBill?.provider}</p>
+              <p className="text-3xl font-black text-primary">{selectedBill?.amount}</p>
+            </div>
+            {isProcessing ? (
+              <div className="flex flex-col items-center gap-3 py-6"><Loader2 className="h-8 w-8 text-primary animate-spin" /><p className="text-xs font-bold">İşlem Yapılıyor...</p></div>
+            ) : isSuccess ? (
+              <div className="flex flex-col items-center gap-4 py-6 text-green-600">
+                <CheckCircle2 className="h-10 w-10 animate-in zoom-in" />
+                <div className="space-y-1">
+                  <p className="text-xs font-bold">Faturanız Ödendi!</p>
+                  <p className="text-[10px] text-reward font-black uppercase tracking-wider flex items-center justify-center gap-1"><Sparkles className="h-3 w-3" /> 50 Gül Puan Kazandınız</p>
                 </div>
               </div>
-            ) : qrState === 'success' ? (
-              <div className="flex flex-col items-center gap-6 py-10 w-full animate-in zoom-in-95 duration-500">
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-green-500/20 rounded-full animate-ping"></div>
-                  <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center text-white shadow-xl shadow-green-500/30">
-                    <CheckCircle2 className="h-14 w-14" />
-                  </div>
-                </div>
-
-                <div className="text-center space-y-3">
-                  <h3 className="text-2xl font-black text-green-600 tracking-tight">İyi Yolculuklar Yasin!</h3>
-                  <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-100">
-                    <p className="text-xs font-bold text-green-700">
-                      Bakiyenizden <span className="text-lg">15.00 ₺</span> düşüldü.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            <Button variant="ghost" onClick={handleCloseQr} className="p-2 rounded-full hover:bg-accent/10 text-muted-foreground">
-              <X className="h-6 w-6" />
-            </Button>
+            ) : (
+              <Button onClick={handleBillPayment} className="w-full h-14 rounded-2xl text-lg font-bold">Ödemeyi Onayla</Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>
-
-      <style jsx global>{`
-        @keyframes scan {
-          0% { top: 0; }
-          100% { top: 100%; }
-        }
-      `}</style>
 
       <BottomNav />
     </div>
