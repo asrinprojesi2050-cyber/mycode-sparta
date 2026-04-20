@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Library, Car, Bell, User, MapPin, Info, ArrowRight, Sparkles, CreditCard, Wifi, Droplets, Receipt, Gift, Bus } from 'lucide-react';
+import { Library, Car, Bell, User, MapPin, Info, ArrowRight, Sparkles, CreditCard, Wifi, Droplets, Receipt, Gift, Bus, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
 import { Badge } from '@/components/ui/badge';
