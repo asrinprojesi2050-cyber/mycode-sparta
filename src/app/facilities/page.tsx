@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { ArrowLeft, MapPin, Users, Utensils, Navigation, Info, X, Check, Sparkles, QrCode, Coffee } from 'lucide-react';
-import Link from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
