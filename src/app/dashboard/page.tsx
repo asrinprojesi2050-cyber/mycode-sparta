@@ -82,36 +82,41 @@ export default function Dashboard() {
         
         {/* Isparta Kart Entegrasyonu */}
         <section>
-          <div className="relative group cursor-pointer">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-            <Card className="relative border-none bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-white rounded-2xl overflow-hidden shadow-xl">
-              <div className="absolute top-0 right-0 p-8 opacity-10">
-                <RoseIcon />
-              </div>
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-10">
-                  <div className="space-y-1">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/70 font-semibold">Isparta Kart</p>
-                    <div className="flex items-center gap-2">
-                      <RoseIcon />
-                      <span className="font-bold text-lg">MyCode City</span>
+          <Link href="/isparta-kart" className="block">
+            <div className="relative group cursor-pointer transition-transform active:scale-[0.98]">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+              <Card className="relative border-none bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-white rounded-2xl overflow-hidden shadow-xl">
+                <div className="absolute top-0 right-0 p-8 opacity-10">
+                  <RoseIcon />
+                </div>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-10">
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-white/70 font-semibold">Isparta Kart</p>
+                      <div className="flex items-center gap-2">
+                        <RoseIcon />
+                        <span className="font-bold text-lg">MyCode City</span>
+                      </div>
+                    </div>
+                    <Wifi className="h-5 w-5 text-white/60" />
+                  </div>
+                  
+                  <div className="space-y-1 mb-6">
+                    <p className="text-[10px] text-white/60 uppercase tracking-widest">Bakiye</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-3xl font-bold">142.50 ₺</p>
+                      <Badge className="bg-white/20 hover:bg-white/30 text-white border-none backdrop-blur-md text-[10px] py-1 px-3">YÖNET</Badge>
                     </div>
                   </div>
-                  <Wifi className="h-5 w-5 text-white/60" />
-                </div>
-                
-                <div className="space-y-1 mb-6">
-                  <p className="text-[10px] text-white/60 uppercase tracking-widest">Bakiye</p>
-                  <p className="text-3xl font-bold">145.50 ₺</p>
-                </div>
 
-                <div className="flex justify-between items-end">
-                  <p className="text-xs font-mono tracking-tighter opacity-70">**** **** **** 1234</p>
-                  <div className="h-8 w-12 bg-white/20 rounded-md backdrop-blur-sm border border-white/10" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  <div className="flex justify-between items-end">
+                    <p className="text-xs font-mono tracking-tighter opacity-70">**** **** **** 1234</p>
+                    <div className="h-8 w-12 bg-white/20 rounded-md backdrop-blur-sm border border-white/10" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </Link>
         </section>
 
         {/* Puan Harcama Butonu */}
