@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Wifi, QrCode, CreditCard, Plus, ChevronRight, History, Info, Sparkles, X, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Wifi, QrCode, CreditCard, Plus, ChevronRight, History, Info, Sparkles, X, Loader2, CheckCircle2, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 type QrModalState = 'idle' | 'counting' | 'success';
 
 export default function IspartaKartPage() {
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(100);
   const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [qrState, setQrState] = useState<QrModalState>('idle');
@@ -30,13 +30,11 @@ export default function IspartaKartPage() {
           setQrCountdown((prev) => prev - 1);
         }, 1000);
       } else {
-        // Haptic Feedback for success (double pulse)
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
           navigator.vibrate([100, 50, 100]);
         }
         setQrState('success');
         
-        // Auto close after 3 seconds of success
         timer = setTimeout(() => {
           handleCloseQr();
         }, 3000);
@@ -46,7 +44,6 @@ export default function IspartaKartPage() {
   }, [isQrModalOpen, qrState, qrCountdown]);
 
   const handleOpenQr = () => {
-    // Initial Haptic (short pulse)
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(50);
     }
@@ -57,7 +54,6 @@ export default function IspartaKartPage() {
 
   const handleCloseQr = () => {
     setIsQrModalOpen(false);
-    // Wait for animation to finish before resetting
     setTimeout(() => {
       setQrState('idle');
       setQrCountdown(5);
@@ -72,7 +68,6 @@ export default function IspartaKartPage() {
       setTimeout(() => {
         setIsSuccess(false);
         setIsTopupModalOpen(false);
-        setSelectedAmount(null);
       }, 2000);
     }, 1500);
   };
@@ -142,20 +137,21 @@ export default function IspartaKartPage() {
           </div>
         </section>
 
-        {/* Quick Top-up Section */}
-        <section className="space-y-4">
+        {/* Enhanced Top-up Section */}
+        <section className="space-y-5">
           <div className="flex justify-between items-center">
             <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Hızlı Bakiye Yükle</h2>
           </div>
+          
           <div className="grid grid-cols-3 gap-3">
             {[50, 100, 200].map((amount) => (
               <button
                 key={amount}
                 onClick={() => setSelectedAmount(amount)}
                 className={cn(
-                  "py-3 rounded-xl font-bold transition-all border-2 text-xs",
+                  "py-3.5 rounded-xl font-bold transition-all border-2 text-sm",
                   selectedAmount === amount 
-                    ? "bg-primary text-white border-primary shadow-md scale-105" 
+                    ? "bg-primary text-white border-primary shadow-lg scale-105" 
                     : "bg-white text-primary border-transparent shadow-soft"
                 )}
               >
@@ -163,13 +159,42 @@ export default function IspartaKartPage() {
               </button>
             ))}
           </div>
-          <Button 
-            onClick={() => selectedAmount && setIsTopupModalOpen(true)}
-            disabled={!selectedAmount}
-            className="w-full h-12 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-md font-bold text-sm transition-transform active:scale-95"
-          >
-            {selectedAmount ? `${selectedAmount} ₺ Yükle` : "Tutar Seçiniz"}
-          </Button>
+
+          {/* Payment Method Selector */}
+          <div className="space-y-3">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Ödeme Yöntemi</h3>
+            <Card className="border-none shadow-soft rounded-xl bg-white overflow-hidden border border-border/50">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-7 bg-primary/5 rounded-md flex items-center justify-center border border-primary/10">
+                    <CreditCard className="h-4 w-4 text-primary" />
+                  </div>
+                  <p className="text-sm font-bold text-foreground/80 tracking-tight">**** **** **** 4242</p>
+                </div>
+                <button className="text-[10px] font-bold text-primary uppercase tracking-wider hover:underline">Değiştir</button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-4">
+            <Button 
+              onClick={() => selectedAmount && setIsTopupModalOpen(true)}
+              disabled={!selectedAmount}
+              className="w-full h-14 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl font-bold text-base transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+              <Plus className="h-5 w-5" />
+              {selectedAmount ? `${selectedAmount} ₺ Yükle (Kredi Kartı ile)` : "Tutar Seçiniz"}
+            </Button>
+            
+            <div className="flex items-center justify-center gap-2 text-muted-foreground/60">
+              <Lock className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.1em]">Güvenli 256-bit SSL Ödeme</span>
+            </div>
+            
+            <Button variant="ghost" className="w-full text-xs text-muted-foreground font-bold uppercase tracking-wider h-10">
+              Farklı Tutar Yükle
+            </Button>
+          </div>
         </section>
 
         {/* QR Button Section */}
@@ -255,7 +280,7 @@ export default function IspartaKartPage() {
                 </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground bg-secondary/30 p-4 rounded-xl w-full">
                   <CreditCard className="h-5 w-5 text-primary" />
-                  <span>**** **** **** 1234 numaralı kartınız kullanılacak.</span>
+                  <span>**** **** **** 4242 numaralı kartınız kullanılacak.</span>
                 </div>
               </>
             )}
@@ -268,7 +293,7 @@ export default function IspartaKartPage() {
                 disabled={isProcessing}
                 className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl bg-primary hover:bg-primary/90"
               >
-                {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : "Ödemeyi Tamamla"}
+                {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : "Ödemeyi Onayla"}
               </Button>
               <Button variant="ghost" onClick={() => setIsTopupModalOpen(false)} className="w-full text-muted-foreground">Vazgeç</Button>
             </DialogFooter>
@@ -276,7 +301,7 @@ export default function IspartaKartPage() {
         </DialogContent>
       </Dialog>
 
-      {/* QR Code Modal - Enhanced with Haptic and Success States */}
+      {/* QR Code Modal */}
       <Dialog open={isQrModalOpen} onOpenChange={handleCloseQr}>
         <DialogContent className="max-w-[85vw] sm:max-w-sm rounded-[2.5rem] p-8 border-none bg-white/95 backdrop-blur-xl shadow-2xl overflow-hidden">
           <div className="flex flex-col items-center gap-8 py-4">
@@ -287,23 +312,17 @@ export default function IspartaKartPage() {
                   <DialogDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Kullanıma Hazır</DialogDescription>
                 </div>
 
-                {/* QR Framework */}
                 <div className="relative p-6 bg-white rounded-[2rem] shadow-inner border-4 border-accent/20 group">
                   <div className="absolute inset-0 bg-accent/5 animate-pulse rounded-[1.8rem]"></div>
                   <QrCode className="h-48 w-48 text-accent relative z-10" />
-                  
-                  {/* Scan Line Animation */}
                   <div className="absolute top-0 left-0 right-0 h-1 bg-accent/30 animate-[scan_2s_linear_infinite] blur-sm z-20"></div>
                 </div>
 
                 <div className="text-center space-y-4 w-full">
                   <p className="text-xs font-medium text-foreground/70">Otobüsteki cihaza okutunuz</p>
-                  
                   <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border-2 border-accent text-accent font-bold text-xl">
                     {qrCountdown}
                   </div>
-                  
-                  <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Geri sayım bitince kapanır</p>
                 </div>
               </div>
             ) : qrState === 'success' ? (
@@ -320,10 +339,6 @@ export default function IspartaKartPage() {
                   <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-100">
                     <p className="text-xs font-bold text-green-700">Bakiyenizden <span className="text-lg">15.00 ₺</span> düşüldü.</p>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest animate-pulse">
-                   <Sparkles className="h-3 w-3" /> +5 Gül Puan Kazanıldı
                 </div>
               </div>
             ) : null}
