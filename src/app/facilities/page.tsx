@@ -2,8 +2,8 @@
 "use client"
 
 import { useState } from 'react';
-import { ArrowLeft, MapPin, Users, Utensils, Navigation, Info, ExternalLink, Coffee, Sparkles, QrCode, X, Check } from 'lucide-react';
-import Link from 'next/link';
+import { ArrowLeft, MapPin, Users, Utensils, Navigation, Info, X, Check, Sparkles, QrCode, Coffee } from 'lucide-react';
+import Link from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,7 +21,8 @@ const facilities = [
     image: PlaceHolderImages.find(img => img.id === 'facility-kirazlidere')?.imageUrl,
     occupancy: 65,
     emptyTables: 12,
-    description: "Şehrin en yüksek noktasında, Isparta ayaklarınızın altındayken meşhur serpme kahvaltımızın tadını çıkarın. Ailenizle akşam yemeği için en ferah tercih.",
+    shortDesc: "Şehrin Zirvesinde, Cam Teras Manzaralı Akşam Yemeği",
+    description: "Isparta'nın en yüksek noktasında, cam terasın heyecanıyla şehrin panoramik ışıkları altında meşhur serpme kahvaltımızın veya akşam yemeğimizin tadını çıkarın.",
     mapsUrl: "https://www.google.com/maps/search/Kirazlıdere+Sosyal+Tesisleri+Isparta",
     menu: [
       { name: "Meşhur Kabune Pilavı", price: "185 ₺", icon: Utensils, desc: "Geleneksel usulle ağır ateşte pişmiş etli pilav." },
@@ -37,7 +38,8 @@ const facilities = [
     image: PlaceHolderImages.find(img => img.id === 'facility-gokcay')?.imageUrl,
     occupancy: 82,
     emptyTables: 5,
-    description: "Doğa ile iç içe, kuş sesleri eşliğinde geleneksel Isparta mutfağının en seçkin örneklerini keşfedin. Çocuk oyun alanlarıyla tam bir aile dostu mekan.",
+    shortDesc: "Doğa ile İç İçe, Göl Kenarında Huzurlu Bir Mola",
+    description: "Doğa ile iç içe, kuş sesleri ve gölet manzarası eşliğinde geleneksel Isparta mutfağının en seçkin örneklerini keşfedin. Çocuklar için güvenli oyun alanları mevcuttur.",
     mapsUrl: "https://www.google.com/maps/search/Gökçay+Sosyal+Tesisleri+Isparta",
     menu: [
       { name: "Fırın Kebabı", price: "290 ₺", icon: Utensils, desc: "12 saat taş fırında pişen meşhur Isparta kebabı." },
@@ -48,16 +50,17 @@ const facilities = [
   },
   {
     id: 3,
-    name: "Seyir Terası Sosyal Tesisi",
+    name: "Etnografya Müzesi Yanı Tesis",
     address: "Yedişehitler, Isparta",
-    image: PlaceHolderImages.find(img => img.id === 'facility-seyir')?.imageUrl,
+    image: PlaceHolderImages.find(img => img.id === 'facility-museum')?.imageUrl,
     occupancy: 40,
     emptyTables: 24,
-    description: "Gün batımını izlerken kahvenizi yudumlayabileceğiniz, Isparta'nın yeni nesil buluşma noktası. Panoramik manzara ve huzur bir arada.",
-    mapsUrl: "https://www.google.com/maps/search/Seyir+Terası+Sosyal+Tesisleri+Isparta",
+    shortDesc: "Tarihin Gölgesinde, Güllerle Süslü Bahçede Kafe Keyfi",
+    description: "Isparta Etnografya Müzesi'nin tarihi dokusunun hemen yanında, güllerle süslü bahçemizde günün yorgunluğunu en taze içeceklerimizle atın.",
+    mapsUrl: "https://www.google.com/maps/search/Etnografya+Müzesi+Sosyal+Tesisleri+Isparta",
     menu: [
       { name: "Yeni Nesil Türk Kahvesi", price: "65 ₺", icon: Coffee, desc: "Közde ağır pişmiş, lokum eşliğinde servis." },
-      { name: "Manzara Tabağı", price: "175 ₺", icon: Utensils, desc: "Atıştırmalık ve peynir çeşitlerinden oluşan özel tabak." },
+      { name: "Müze Tabağı", price: "175 ₺", icon: Utensils, desc: "Tarihi dokuya uygun yerel atıştırmalıklar." },
       { name: "Gül Şerbeti", price: "55 ₺", icon: Sparkles, desc: "Tamamen doğal gül yapraklarından soğuk içecek." },
       { name: "Sıcak Çikolata", price: "80 ₺", icon: Coffee, desc: "Belçika çikolatası ile hazırlanan yoğun lezzet." }
     ]
@@ -80,7 +83,7 @@ export default function FacilitiesPage() {
         <h1 className="text-xl font-bold text-primary tracking-tight">Sosyal Tesisler</h1>
       </header>
 
-      <main className="px-6 pt-6 animate-fade-in space-y-6">
+      <main className="px-6 pt-6 animate-fade-in space-y-6 max-w-2xl mx-auto">
         <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-start gap-3">
           <Info className="h-5 w-5 text-primary shrink-0" />
           <p className="text-xs text-primary/80 leading-relaxed font-medium">
@@ -92,42 +95,44 @@ export default function FacilitiesPage() {
           {facilities.map((facility) => (
             <Card key={facility.id} className="border-none shadow-soft rounded-2xl overflow-hidden bg-white">
               <CardContent className="p-0">
-                <div className="flex flex-col sm:flex-row">
+                <div className="flex flex-col sm:flex-row h-full">
                   {/* Image Section */}
-                  <div className="relative w-full sm:w-1/3 h-52 sm:h-auto">
+                  <div className="relative w-full sm:w-2/5 h-56 sm:h-auto overflow-hidden">
                     <Image 
-                      src={facility.image || "https://picsum.photos/seed/facility/600/600"} 
+                      src={facility.image || "https://picsum.photos/seed/facility/800/600"} 
                       alt={facility.name}
                       fill
-                      className="object-cover rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none"
+                      className="object-cover rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none transition-transform duration-500 hover:scale-105"
+                      data-ai-hint="restaurant view"
                     />
                     <div className="absolute top-3 left-3 px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold text-primary flex items-center gap-1 shadow-sm">
-                      <Utensils className="h-3 w-3" /> Restoran
+                      <Utensils className="h-3 w-3" /> Sosyal Tesis
                     </div>
                   </div>
 
                   {/* Content Section */}
-                  <div className="flex-1 p-5 space-y-4">
+                  <div className="flex-1 p-6 flex flex-col justify-between space-y-4">
                     <div>
                       <h3 className="text-lg font-bold text-foreground mb-1 leading-tight">{facility.name}</h3>
-                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
+                      <p className="text-[10px] text-primary font-bold uppercase tracking-wider mb-2">{facility.shortDesc}</p>
+                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium uppercase tracking-tighter mb-3">
                         <MapPin className="h-3 w-3" /> {facility.address}
                       </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {facility.description}
+                      </p>
                     </div>
-
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {facility.description}
-                    </p>
 
                     {/* Occupancy Indicator */}
                     <div className="space-y-2 pt-4 border-t border-border/50">
-                      <div className="flex justify-between items-center text-xs font-bold">
-                        <div className="flex items-center gap-1.5 text-primary">
+                      <div className="flex justify-between items-center text-[11px] font-bold">
+                        <div className="flex items-center gap-1.5 text-primary uppercase tracking-widest">
                           <Users className="h-3.5 w-3.5" />
-                          <span>Doluluk Oranı</span>
+                          <span>Güncel Durum</span>
                         </div>
                         <span className={cn(
-                          facility.occupancy > 80 ? "text-red-500" : facility.occupancy > 50 ? "text-accent" : "text-green-600"
+                          "px-2 py-0.5 rounded-full",
+                          facility.occupancy > 80 ? "bg-red-50 text-red-600" : facility.occupancy > 50 ? "bg-accent/5 text-accent" : "bg-green-50 text-green-600"
                         )}>
                           %{facility.occupancy} Dolu
                         </span>
@@ -136,9 +141,12 @@ export default function FacilitiesPage() {
                         value={facility.occupancy} 
                         className="h-2 bg-secondary"
                       />
-                      <div className="flex justify-end pt-1">
-                        <p className="text-[10px] font-bold text-muted-foreground italic">
-                          Şu an <span className="text-primary">{facility.emptyTables} Boş Masa</span> mevcut.
+                      <div className="flex justify-between items-center pt-1">
+                        <p className="text-[10px] font-bold text-muted-foreground/60 italic uppercase tracking-tighter">
+                          Kapasite: 20 Masa
+                        </p>
+                        <p className="text-[10px] font-bold text-primary italic">
+                          <span className="text-primary">{facility.emptyTables} Boş Masa</span> Mevcut
                         </p>
                       </div>
                     </div>
@@ -173,10 +181,11 @@ export default function FacilitiesPage() {
           <div className="relative h-40 w-full shrink-0">
             {selectedFacility && (
               <Image 
-                src={selectedFacility.image || "https://picsum.photos/seed/facility/600/600"} 
+                src={selectedFacility.image || "https://picsum.photos/seed/facility/800/600"} 
                 alt={selectedFacility.name}
                 fill
                 className="object-cover"
+                data-ai-hint="food close up"
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-[#FDFBF9] via-transparent to-black/20" />
@@ -197,7 +206,7 @@ export default function FacilitiesPage() {
                 {selectedFacility?.name}
               </DialogTitle>
               <DialogDescription className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Yöresel Lezzetler & Tatlar
+                Yöresel Isparta Lezzetleri
               </DialogDescription>
             </DialogHeader>
 

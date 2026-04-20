@@ -33,21 +33,21 @@
     },
     {
       "id": "facility-kirazlidere",
-      "description": "Kirazlıdere Social Facility",
-      "imageUrl": "https://picsum.photos/seed/kirazlidere/600/600",
-      "imageHint": "hilltop restaurant"
+      "description": "Kirazlıdere Panoramic View",
+      "imageUrl": "https://picsum.photos/seed/kirazlidere/800/600",
+      "imageHint": "panoramic view"
     },
     {
       "id": "facility-gokcay",
-      "description": "Gökçay Restaurant",
-      "imageUrl": "https://picsum.photos/seed/gokcay/600/600",
-      "imageHint": "garden restaurant"
+      "description": "Gökçay Lake Restaurant",
+      "imageUrl": "https://picsum.photos/seed/gokcay/800/600",
+      "imageHint": "lake restaurant"
     },
     {
-      "id": "facility-seyir",
-      "description": "Seyir Terası Restaurant",
-      "imageUrl": "https://picsum.photos/seed/seyir/600/600",
-      "imageHint": "city view"
+      "id": "facility-museum",
+      "description": "Etnografya Museum Garden Cafe",
+      "imageUrl": "https://picsum.photos/seed/museum/800/600",
+      "imageHint": "museum garden"
     }
   ]
 }
