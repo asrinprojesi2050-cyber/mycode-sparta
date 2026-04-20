@@ -10,27 +10,59 @@ import { BottomNav } from '@/components/bottom-nav';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
+type QrModalState = 'idle' | 'counting' | 'success';
+
 export default function IspartaKartPage() {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [qrState, setQrState] = useState<QrModalState>('idle');
   const [qrCountdown, setQrCountdown] = useState(5);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // QR Countdown logic
+  // QR Interaction Logic
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (isQrModalOpen && qrCountdown > 0) {
-      timer = setInterval(() => {
-        setQrCountdown((prev) => prev - 1);
-      }, 1000);
-    } else if (qrCountdown === 0) {
-      setIsQrModalOpen(false);
-      setQrCountdown(5); // Reset
+    if (isQrModalOpen && qrState === 'counting') {
+      if (qrCountdown > 0) {
+        timer = setInterval(() => {
+          setQrCountdown((prev) => prev - 1);
+        }, 1000);
+      } else {
+        // Haptic Feedback for success (double pulse)
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate([100, 50, 100]);
+        }
+        setQrState('success');
+        
+        // Auto close after 3 seconds of success
+        timer = setTimeout(() => {
+          handleCloseQr();
+        }, 3000);
+      }
     }
     return () => clearInterval(timer);
-  }, [isQrModalOpen, qrCountdown]);
+  }, [isQrModalOpen, qrState, qrCountdown]);
+
+  const handleOpenQr = () => {
+    // Initial Haptic (short pulse)
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    setQrCountdown(5);
+    setQrState('counting');
+    setIsQrModalOpen(true);
+  };
+
+  const handleCloseQr = () => {
+    setIsQrModalOpen(false);
+    // Wait for animation to finish before resetting
+    setTimeout(() => {
+      setQrState('idle');
+      setQrCountdown(5);
+    }, 300);
+  };
 
   const handleTopup = () => {
     setIsProcessing(true);
@@ -46,9 +78,9 @@ export default function IspartaKartPage() {
   };
 
   const transactions = [
-    { id: 1, title: "Halk Otobüsü - Hat 18", date: "Bugün, 08:45", amount: "-4.50 ₺", type: "payment" },
+    { id: 1, title: "Halk Otobüsü - Hat 18", date: "Bugün, 08:45", amount: "-15.00 ₺", type: "payment" },
     { id: 2, title: "Bakiye Yükleme", date: "Dün, 14:20", amount: "+100.00 ₺", type: "topup" },
-    { id: 3, title: "Halk Otobüsü - Hat 4", date: "12 Haz, 17:30", amount: "-4.50 ₺", type: "payment" },
+    { id: 3, title: "Halk Otobüsü - Hat 4", date: "12 Haz, 17:30", amount: "-15.00 ₺", type: "payment" },
   ];
 
   const RoseIcon = () => (
@@ -71,7 +103,7 @@ export default function IspartaKartPage() {
       </header>
 
       <main className="px-6 pt-6 animate-fade-in space-y-8 max-w-md mx-auto">
-        {/* Virtual Card Section - Optimized Size & Aspect Ratio */}
+        {/* Virtual Card Section */}
         <section className="flex justify-center">
           <div className="relative group w-full max-w-[340px]">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-accent/50 rounded-[1.5rem] blur-xl opacity-20 transition duration-1000 group-hover:opacity-40"></div>
@@ -138,15 +170,12 @@ export default function IspartaKartPage() {
           >
             {selectedAmount ? `${selectedAmount} ₺ Yükle` : "Tutar Seçiniz"}
           </Button>
-          <button className="w-full py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider hover:text-primary transition-colors">
-            Farklı Tutar Yükle
-          </button>
         </section>
 
-        {/* QR Button Section - Showy Part */}
+        {/* QR Button Section */}
         <section>
           <button 
-            onClick={() => setIsQrModalOpen(true)}
+            onClick={handleOpenQr}
             className="w-full relative group"
           >
             <div className="absolute -inset-1 bg-gradient-to-r from-accent to-primary rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
@@ -247,37 +276,61 @@ export default function IspartaKartPage() {
         </DialogContent>
       </Dialog>
 
-      {/* QR Code Modal - Showy Interaction */}
-      <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>
-        <DialogContent className="max-w-[85vw] sm:max-w-sm rounded-[2.5rem] p-8 border-none bg-white/95 backdrop-blur-xl shadow-2xl">
+      {/* QR Code Modal - Enhanced with Haptic and Success States */}
+      <Dialog open={isQrModalOpen} onOpenChange={handleCloseQr}>
+        <DialogContent className="max-w-[85vw] sm:max-w-sm rounded-[2.5rem] p-8 border-none bg-white/95 backdrop-blur-xl shadow-2xl overflow-hidden">
           <div className="flex flex-col items-center gap-8 py-4">
-            <div className="text-center space-y-1">
-              <DialogTitle className="text-2xl font-black text-accent tracking-tight">Dijital Biniş</DialogTitle>
-              <DialogDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Kullanıma Hazır</DialogDescription>
-            </div>
+            {qrState === 'counting' ? (
+              <div className="flex flex-col items-center gap-8 w-full animate-in fade-in zoom-in duration-300">
+                <div className="text-center space-y-1">
+                  <DialogTitle className="text-2xl font-black text-accent tracking-tight">Dijital Biniş</DialogTitle>
+                  <DialogDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Kullanıma Hazır</DialogDescription>
+                </div>
 
-            {/* QR Framework */}
-            <div className="relative p-6 bg-white rounded-[2rem] shadow-inner border-4 border-accent/20 group animate-in zoom-in-90 duration-500">
-              <div className="absolute inset-0 bg-accent/5 animate-pulse rounded-[1.8rem]"></div>
-              <QrCode className="h-48 w-48 text-accent relative z-10" />
-              
-              {/* Scan Line Animation */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-accent/30 animate-[scan_2s_linear_infinite] blur-sm z-20"></div>
-            </div>
+                {/* QR Framework */}
+                <div className="relative p-6 bg-white rounded-[2rem] shadow-inner border-4 border-accent/20 group">
+                  <div className="absolute inset-0 bg-accent/5 animate-pulse rounded-[1.8rem]"></div>
+                  <QrCode className="h-48 w-48 text-accent relative z-10" />
+                  
+                  {/* Scan Line Animation */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-accent/30 animate-[scan_2s_linear_infinite] blur-sm z-20"></div>
+                </div>
 
-            <div className="text-center space-y-4 w-full">
-              <p className="text-xs font-medium text-foreground/70">Otobüsteki cihaza okutunuz</p>
-              
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border-2 border-accent text-accent font-bold text-xl">
-                {qrCountdown}
+                <div className="text-center space-y-4 w-full">
+                  <p className="text-xs font-medium text-foreground/70">Otobüsteki cihaza okutunuz</p>
+                  
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border-2 border-accent text-accent font-bold text-xl">
+                    {qrCountdown}
+                  </div>
+                  
+                  <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Geri sayım bitince kapanır</p>
+                </div>
               </div>
-              
-              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Geri sayım bitince kapanır</p>
-            </div>
+            ) : qrState === 'success' ? (
+              <div className="flex flex-col items-center gap-6 py-10 w-full animate-in zoom-in-95 duration-500">
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-green-500/20 rounded-full animate-ping"></div>
+                  <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center text-white shadow-xl shadow-green-500/30">
+                    <CheckCircle2 className="h-14 w-14" />
+                  </div>
+                </div>
+                
+                <div className="text-center space-y-3">
+                  <h3 className="text-2xl font-black text-green-600 tracking-tight">İyi Yolculuklar Yasin!</h3>
+                  <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-100">
+                    <p className="text-xs font-bold text-green-700">Bakiyenizden <span className="text-lg">15.00 ₺</span> düşüldü.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest animate-pulse">
+                   <Sparkles className="h-3 w-3" /> +5 Gül Puan Kazanıldı
+                </div>
+              </div>
+            ) : null}
 
             <Button 
               variant="ghost" 
-              onClick={() => setIsQrModalOpen(false)}
+              onClick={handleCloseQr}
               className="p-2 rounded-full hover:bg-accent/10 text-muted-foreground"
             >
               <X className="h-6 w-6" />
