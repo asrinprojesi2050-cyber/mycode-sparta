@@ -426,7 +426,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
-}
