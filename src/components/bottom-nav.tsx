@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Library, Utensils, Bell, Receipt, User, CreditCard } from "lucide-react"
+import { Home, Navigation, Utensils, Receipt, User, CreditCard } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export function BottomNav() {
@@ -11,6 +11,7 @@ export function BottomNav() {
 
   const navItems = [
     { label: "Ana Sayfa", href: "/dashboard", icon: Home },
+    { label: "Ulaşım", href: "/transport", icon: Navigation },
     { label: "Kart", href: "/isparta-kart", icon: CreditCard },
     { label: "Faturalar", href: "/payments", icon: Receipt },
     { label: "Tesisler", href: "/facilities", icon: Utensils },
@@ -34,7 +35,7 @@ export function BottomNav() {
             )}
           >
             <Icon className={cn("h-5 w-5", isActive ? "fill-primary/20" : "")} />
-            <span className="text-[10px] font-medium">{item.label}</span>
+            <span className="text-[9px] font-medium text-center truncate w-full">{item.label}</span>
           </Link>
         )
       })}

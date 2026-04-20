@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Library, Car, Bell, User, MapPin, Info, ArrowRight, Sparkles, CreditCard, Wifi, Droplets, Receipt, Gift, Bus, ChevronRight, Utensils } from 'lucide-react';
+import { Library, Car, Bell, User, MapPin, Info, ArrowRight, Sparkles, CreditCard, Wifi, Droplets, Receipt, Gift, Bus, ChevronRight, Utensils, Navigation } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,14 @@ export default function Dashboard() {
   const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
 
   const services = [
+    {
+      title: "Canlı Ulaşım",
+      description: "Otobüsün nerede? Hemen izle",
+      icon: Navigation,
+      href: "/transport",
+      color: "bg-green-50 text-green-600",
+      liveStatus: "Canlı",
+    },
     {
       title: "Sosyal Tesisler",
       description: "Belediye restoranlarında doluluk",
