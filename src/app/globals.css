@@ -44,3 +44,16 @@
 .glass-card {
   @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-soft;
 }
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
