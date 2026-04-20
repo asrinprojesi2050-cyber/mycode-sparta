@@ -20,9 +20,8 @@ import {
   Navigation,
   CheckCircle2,
   QrCode,
-  X,
-  Loader2,
-  Share2
+  Share2,
+  Loader2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
@@ -33,8 +32,7 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogDescription,
-  DialogFooter
+  DialogDescription
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -50,7 +48,6 @@ export default function Dashboard() {
   const [displayPoints, setDisplayPoints] = useState(1250);
   const [selectedReward, setSelectedReward] = useState<any>(null);
 
-  // Puan azalış animasyonu
   useEffect(() => {
     if (displayPoints > currentPoints) {
       const timer = setTimeout(() => {
@@ -85,23 +82,31 @@ export default function Dashboard() {
   };
 
   const handleShareApp = async () => {
+    const shareData = {
+      title: 'MyCode City - Isparta',
+      text: 'Isparta için akıllı şehir mobil uygulamasını keşfedin!',
+      url: typeof window !== 'undefined' ? window.location.origin : '',
+    };
+
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
-        await navigator.share({
-          title: 'MyCode City - Isparta',
-          text: 'Isparta için akıllı şehir mobil uygulamasını keşfedin!',
-          url: window.location.origin,
-        });
+        await navigator.share(shareData);
+        return;
       } catch (error) {
-        console.error('Paylaşım hatası:', error);
+        // Kullanıcı iptal etti veya izin verilmedi, panoya kopyalamaya devam et
       }
-    } else {
-      // Fallback: Copy to clipboard
-      navigator.clipboard.writeText(window.location.origin);
-      toast({
-        title: "Link Kopyalandı",
-        description: "Uygulama linki panoya kopyalandı. Artık paylaşabilirsiniz!",
-      });
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(shareData.url);
+      } catch (err) {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Link kopyalanamadı.",
+        });
+      }
     }
   };
 
@@ -160,7 +165,6 @@ export default function Dashboard() {
 
   return (
     <div className="pb-24 md:pb-8 bg-[#FDFBF9] min-h-screen">
-      {/* Header */}
       <header className="px-6 pt-8 pb-6 flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-40">
         <div>
           <h2 className="text-sm font-medium text-muted-foreground">İyi günler,</h2>
@@ -180,8 +184,6 @@ export default function Dashboard() {
       </header>
 
       <main className="px-6 space-y-8 animate-fade-in">
-        
-        {/* Isparta Kart Entegrasyonu */}
         <section>
           <Link href="/isparta-kart" className="block">
             <div className="relative group cursor-pointer transition-transform active:scale-[0.98]">
@@ -220,7 +222,6 @@ export default function Dashboard() {
           </Link>
         </section>
 
-        {/* Puan Harcama Butonu */}
         <section>
           <Button 
             onClick={() => setIsRewardModalOpen(true)}
@@ -232,7 +233,6 @@ export default function Dashboard() {
           </Button>
         </section>
 
-        {/* Bekleyen Fatura Hatırlatıcı */}
         <section>
           <Link href="/payments">
             <Card className="border-none bg-white shadow-soft rounded-2xl overflow-hidden border-l-4 border-l-accent animate-pulse-subtle">
@@ -258,7 +258,6 @@ export default function Dashboard() {
           </Link>
         </section>
 
-        {/* Hızlı Randevu Butonu */}
         <section>
           <Link href="/library">
             <Button className="w-full h-16 rounded-2xl bg-white border border-accent/20 text-accent hover:bg-accent/5 shadow-soft flex items-center justify-between px-6 group transition-all relative overflow-hidden">
@@ -277,7 +276,6 @@ export default function Dashboard() {
           </Link>
         </section>
 
-        {/* Services Grid */}
         <section>
           <div className="flex justify-between items-end mb-4">
              <h3 className="text-lg font-bold">Akıllı Hizmetler</h3>
@@ -308,7 +306,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Info Section */}
         <section className="bg-white rounded-2xl p-6 border border-border shadow-soft relative overflow-hidden">
           <div className="absolute bottom-0 right-0 p-4 opacity-5 pointer-events-none">
             <RoseIcon />
@@ -325,7 +322,6 @@ export default function Dashboard() {
         </section>
       </main>
 
-      {/* Reward Points Modal */}
       <Dialog open={isRewardModalOpen} onOpenChange={setIsRewardModalOpen}>
         <DialogContent className="max-w-[90vw] sm:max-w-md rounded-[2.5rem] p-6 border-none bg-white shadow-2xl">
           <DialogHeader>
@@ -380,7 +376,6 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Confirmation Modal */}
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
         <DialogContent className="max-w-[85vw] sm:max-w-sm rounded-[2rem] p-8 border-none bg-white shadow-2xl">
           <DialogHeader>
@@ -409,7 +404,6 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Ticket/Success Modal */}
       <Dialog open={isTicketOpen} onOpenChange={setIsTicketOpen}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm rounded-[2.5rem] p-0 overflow-hidden border-none bg-gradient-to-b from-white to-reward/5 shadow-2xl">
           <div className="p-8 flex flex-col items-center text-center">
