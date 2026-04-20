@@ -2,7 +2,7 @@
 "use client"
 
 import Link from 'next/link';
-import { Library, Car, Bell, User, MapPin, Info, ArrowRight, Sparkles, CreditCard, Wifi } from 'lucide-react';
+import { Library, Car, Bell, User, MapPin, Info, ArrowRight, Sparkles, CreditCard, Wifi, Droplets, Receipt } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,14 @@ import { Button } from '@/components/ui/button';
 
 export default function Dashboard() {
   const services = [
+    {
+      title: "Fatura Ödeme",
+      description: "Su ve belediye borçlarını öde",
+      icon: Receipt,
+      href: "/payments",
+      color: "bg-red-50 text-red-600",
+      liveStatus: "1 Gecikmiş",
+    },
     {
       title: "Kütüphane Randevu",
       description: "Çalışma masanı hemen ayırt",
@@ -93,6 +101,29 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
+        </section>
+
+        {/* Bekleyen Fatura Hatırlatıcı */}
+        <section>
+          <Link href="/payments">
+            <Card className="border-none bg-white shadow-soft rounded-2xl overflow-hidden border-l-4 border-l-accent animate-pulse-subtle">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
+                    <Droplets className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm">Bekleyen Su Faturası</h3>
+                    <p className="text-[10px] text-muted-foreground">Son Ödeme: 25 Haziran</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-accent">145.50 ₺</p>
+                  <span className="text-[9px] font-bold text-white bg-accent px-2 py-0.5 rounded-full">HEMEN ÖDE</span>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         </section>
 
         {/* Hızlı Randevu Butonu */}
