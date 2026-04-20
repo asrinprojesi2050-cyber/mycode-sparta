@@ -8,8 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { BottomNav } from '@/components/bottom-nav';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const categories = [
   { id: 'water', label: 'Su', provider: 'Isparta Belediyesi', icon: Droplets, color: 'text-blue-500' },
@@ -38,9 +41,16 @@ const pastBills = [
 export default function PaymentsPage() {
   const [selectedCategory, setSelectedCategory] = useState('water');
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [isAddBillModalOpen, setIsAddBillModalOpen] = useState(false);
   const [selectedBill, setSelectedBill] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const { toast } = useToast();
+
+  // Form states for new bill
+  const [newBillCategory, setNewBillCategory] = useState('water');
+  const [subscriberNo, setSubscriberNo] = useState('');
+  const [billNickName, setBillNickName] = useState('');
 
   const handleOpenPayment = (bill: any) => {
     setSelectedBill(bill);
@@ -57,6 +67,21 @@ export default function PaymentsPage() {
         setIsPayModalOpen(false);
         setSelectedBill(null);
       }, 4000);
+    }, 1500);
+  };
+
+  const handleAddBill = () => {
+    if (!subscriberNo) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      setIsAddBillModalOpen(false);
+      toast({
+        title: "Abonelik Başarıyla Eklendi",
+        description: `${billNickName || subscriberNo} için abonelik tanımlandı.`,
+      });
+      setSubscriberNo('');
+      setBillNickName('');
     }, 1500);
   };
 
@@ -184,7 +209,11 @@ export default function PaymentsPage() {
 
         {/* Add New Bill */}
         <section className="pt-4 pb-8">
-          <Button variant="outline" className="w-full h-14 rounded-2xl border-dashed border-primary/30 text-primary hover:bg-primary/5 gap-2 border-2 group">
+          <Button 
+            onClick={() => setIsAddBillModalOpen(true)}
+            variant="outline" 
+            className="w-full h-14 rounded-2xl border-dashed border-primary/30 text-primary hover:bg-primary/5 gap-2 border-2 group"
+          >
             <div className="p-1 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
               <Plus className="h-4 w-4" />
             </div>
@@ -193,7 +222,87 @@ export default function PaymentsPage() {
         </section>
       </main>
 
-      {/* Payment Confirmation Modal (Apple Pay Style) */}
+      {/* New Subscription Modal */}
+      <Dialog open={isAddBillModalOpen} onOpenChange={setIsAddBillModalOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-md rounded-[2rem] p-0 overflow-hidden border-none bg-[#FDFBF9] shadow-2xl">
+          <div className="p-8 space-y-8">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-primary">Yeni Abonelik Ekle</DialogTitle>
+              <DialogDescription className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                Kurum ve abone bilgilerinizi giriniz
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-8">
+              {/* Institution Selection */}
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Kurum Seçin</h3>
+                <div className="grid grid-cols-3 gap-3">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setNewBillCategory(cat.id)}
+                      className={cn(
+                        "flex flex-col items-center p-3 rounded-xl bg-white transition-all border-2",
+                        newBillCategory === cat.id 
+                          ? "border-primary bg-primary/5 shadow-md" 
+                          : "border-transparent shadow-sm opacity-60"
+                      )}
+                    >
+                      <cat.icon className={cn("h-5 w-5 mb-1", cat.color)} />
+                      <span className="text-[9px] font-bold text-primary uppercase">{cat.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Input Fields */}
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider ml-1">Abone Numarası</Label>
+                  <Input 
+                    type="number"
+                    inputMode="numeric"
+                    placeholder="Örn: 1029384756"
+                    className="h-12 rounded-xl border-border bg-white focus-visible:ring-primary focus-visible:border-primary text-lg font-bold"
+                    value={subscriberNo}
+                    onChange={(e) => setSubscriberNo(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider ml-1">Faturaya İsim Verin (İsteğe Bağlı)</Label>
+                  <Input 
+                    placeholder="Örn: Ev, Dükkan, Apartman"
+                    className="h-12 rounded-xl border-border bg-white focus-visible:ring-primary focus-visible:border-primary"
+                    value={billNickName}
+                    onChange={(e) => setBillNickName(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="flex-col gap-3">
+              <Button 
+                onClick={handleAddBill}
+                disabled={!subscriberNo || isProcessing}
+                className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg shadow-xl shadow-primary/20 transition-all active:scale-95"
+              >
+                {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : "Sorgula ve Ekle"}
+              </Button>
+              <Button 
+                variant="ghost" 
+                onClick={() => setIsAddBillModalOpen(false)}
+                className="w-full text-muted-foreground font-bold uppercase tracking-widest text-[10px]"
+              >
+                Vazgeç
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Confirmation Modal */}
       <Dialog open={isPayModalOpen} onOpenChange={setIsPayModalOpen}>
         <DialogContent className="max-w-[95vw] sm:max-w-md rounded-t-3xl sm:rounded-3xl p-0 overflow-hidden border-none bg-[#FDFBF9]">
           <div className="p-6 space-y-8">
@@ -260,7 +369,7 @@ export default function PaymentsPage() {
                   <Button 
                     disabled={isProcessing}
                     onClick={handlePayment}
-                    className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl transition-all relative overflow-hidden bg-primary hover:bg-primary/90"
+                    className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl relative overflow-hidden bg-primary hover:bg-primary/90"
                   >
                     {isProcessing ? (
                       <Loader2 className="h-6 w-6 animate-spin" />
