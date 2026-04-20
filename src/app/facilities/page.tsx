@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { BottomNav } from '@/components/bottom-nav';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
@@ -18,7 +17,7 @@ const facilities = [
     id: 1,
     name: "Kirazlıdere Sosyal Tesisleri",
     address: "Kirazlıdere Mevkii, Isparta",
-    image: PlaceHolderImages.find(img => img.id === 'facility-kirazlidere')?.imageUrl,
+    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
     occupancy: 65,
     emptyTables: 12,
     shortDesc: "Şehrin Zirvesinde, Cam Teras Manzaralı Akşam Yemeği",
@@ -35,7 +34,7 @@ const facilities = [
     id: 2,
     name: "Gökçay Restoran",
     address: "Gökçay Mesire Alanı, Isparta",
-    image: PlaceHolderImages.find(img => img.id === 'facility-gokcay')?.imageUrl,
+    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
     occupancy: 82,
     emptyTables: 5,
     shortDesc: "Doğa ile İç İçe, Göl Kenarında Huzurlu Bir Mola",
@@ -52,7 +51,7 @@ const facilities = [
     id: 3,
     name: "Etnografya Müzesi Yanı Tesis",
     address: "Yedişehitler, Isparta",
-    image: PlaceHolderImages.find(img => img.id === 'facility-museum')?.imageUrl,
+    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
     occupancy: 40,
     emptyTables: 24,
     shortDesc: "Tarihin Gölgesinde, Güllerle Süslü Bahçede Kafe Keyfi",
@@ -97,9 +96,9 @@ export default function FacilitiesPage() {
               <CardContent className="p-0">
                 <div className="flex flex-col sm:flex-row h-full">
                   {/* Image Section */}
-                  <div className="relative w-full sm:w-2/5 h-64 sm:h-auto overflow-hidden">
+                  <div className="relative w-full sm:w-2/5 h-64 sm:min-h-full overflow-hidden">
                     <Image 
-                      src={facility.image || "https://picsum.photos/seed/facility/800/600"} 
+                      src={facility.image} 
                       alt={facility.name}
                       fill
                       className="object-cover rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none transition-transform duration-500 hover:scale-105"
@@ -187,7 +186,7 @@ export default function FacilitiesPage() {
           <div className="relative h-48 w-full shrink-0">
             {selectedFacility && (
               <Image 
-                src={selectedFacility.image || "https://picsum.photos/seed/facility/800/600"} 
+                src={selectedFacility.image} 
                 alt={selectedFacility.name}
                 fill
                 className="object-cover"
