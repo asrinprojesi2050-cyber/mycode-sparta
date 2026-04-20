@@ -3,17 +3,26 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Library, Car, Bell, User, MapPin, Info, ArrowRight, Sparkles, CreditCard, Wifi, Droplets, Receipt, Gift, Bus, ChevronRight } from 'lucide-react';
+import { Library, Car, Bell, User, MapPin, Info, ArrowRight, Sparkles, CreditCard, Wifi, Droplets, Receipt, Gift, Bus, ChevronRight, Utensils } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 export default function Dashboard() {
   const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
 
   const services = [
+    {
+      title: "Sosyal Tesisler",
+      description: "Belediye restoranlarında doluluk",
+      icon: Utensils,
+      href: "/facilities",
+      color: "bg-primary/10 text-primary",
+      liveStatus: "3 Tesis",
+    },
     {
       title: "Fatura Ödeme",
       description: "Su ve belediye borçlarını öde",
@@ -27,7 +36,7 @@ export default function Dashboard() {
       description: "Çalışma masanı hemen ayırt",
       icon: Library,
       href: "/library",
-      color: "bg-primary/10 text-primary",
+      color: "bg-blue-50 text-blue-600",
       liveStatus: "%74 Dolu",
     },
     {
@@ -37,14 +46,6 @@ export default function Dashboard() {
       href: "/parking",
       color: "bg-accent/10 text-accent",
       liveStatus: "%82 Dolu",
-    },
-    {
-      title: "Belediye Duyuruları",
-      description: "Güncel haberler ve etkinlikler",
-      icon: Bell,
-      href: "/announcements",
-      color: "bg-orange-100 text-orange-600",
-      liveStatus: "3 Yeni",
     },
   ];
 
@@ -65,12 +66,12 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="pb-24 md:pb-8 bg-background min-h-screen">
+    <div className="pb-24 md:pb-8 bg-[#FDFBF9] min-h-screen">
       {/* Header */}
       <header className="px-6 pt-8 pb-6 flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-40">
         <div>
           <h2 className="text-sm font-medium text-muted-foreground">İyi günler,</h2>
-          <h1 className="text-2xl font-bold text-primary">Merhaba Vatandaş</h1>
+          <h1 className="text-2xl font-bold text-primary tracking-tight">Merhaba Vatandaş</h1>
         </div>
         <Link href="/profile" className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm overflow-hidden active:scale-95 transition-transform">
           <User className="text-primary h-6 w-6" />
@@ -136,7 +137,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <h3 className="font-bold text-sm">Bekleyen Su Faturası</h3>
-                    <p className="text-[10px] text-muted-foreground">Son Ödeme: 25 Haziran</p>
+                    <p className="text-[10px] text-muted-foreground font-medium">Son Ödeme: 25 Haziran</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -167,26 +168,6 @@ export default function Dashboard() {
           </Link>
         </section>
 
-        {/* Featured Card */}
-        <section>
-          <div className="relative overflow-hidden rounded-2xl bg-secondary/50 p-6 border border-border shadow-soft group">
-             <div className="absolute right-[-20px] top-[-20px] w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:scale-110 transition-transform" />
-             <div className="relative z-10">
-                <div className="flex justify-between items-start mb-4">
-                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-bold px-3">Canlı Veri</Badge>
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                    <span className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse" /> Aktif
-                  </div>
-                </div>
-                <h3 className="text-lg font-bold mb-1 text-primary">Halil Hamit Paşa Kütüphanesi</h3>
-                <p className="text-muted-foreground text-sm mb-6 font-medium">Şu an <span className="text-accent font-bold">%74 dolu</span>. Yaklaşık 45 masa boş.</p>
-                <Link href="/library" className="inline-flex items-center gap-2 text-xs font-bold bg-primary text-white px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-all shadow-md active:scale-95">
-                  Yerini Ayırt <ArrowRight className="h-4 w-4" />
-                </Link>
-             </div>
-          </div>
-        </section>
-
         {/* Services Grid */}
         <section>
           <div className="flex justify-between items-end mb-4">
@@ -208,9 +189,9 @@ export default function Dashboard() {
                           {service.liveStatus}
                         </Badge>
                       </div>
-                      <p className="text-[11px] text-muted-foreground">{service.description}</p>
+                      <p className="text-[11px] text-muted-foreground font-medium">{service.description}</p>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground/30" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/30" />
                   </CardContent>
                 </Card>
               </Link>
@@ -229,7 +210,7 @@ export default function Dashboard() {
             </div>
             <h3 className="font-bold text-sm">MyCode City Vizyonu</h3>
           </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed font-medium">
             Isparta Belediyesi olarak, şehrimizin simgesi olan gülün estetiğini teknolojinin gücüyle birleştiriyoruz. Dijital dönüşümle yaşam kalitenizi artırmaya devam ediyoruz.
           </p>
         </section>
@@ -243,7 +224,7 @@ export default function Dashboard() {
               <Gift className="h-6 w-6" />
             </div>
             <DialogTitle className="text-center text-xl font-bold">Puanlarımı Kullan</DialogTitle>
-            <DialogDescription className="text-center text-sm">
+            <DialogDescription className="text-center text-sm font-medium">
               Kazandığın Gül Puanları şehir içinde harcayabilirsin.
             </DialogDescription>
           </DialogHeader>
@@ -265,7 +246,7 @@ export default function Dashboard() {
                   </div>
                   <div className="text-left">
                     <p className="text-sm font-bold">{reward.title}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase">{reward.cost}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">{reward.cost}</p>
                   </div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-reward/50 transition-colors" />
@@ -276,7 +257,7 @@ export default function Dashboard() {
           <div className="mt-6 text-center">
             <button 
               onClick={() => setIsRewardModalOpen(false)}
-              className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
+              className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider"
             >
               Şimdilik Kapat
             </button>
@@ -287,8 +268,4 @@ export default function Dashboard() {
       <BottomNav />
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }

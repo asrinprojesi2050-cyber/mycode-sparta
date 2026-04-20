@@ -30,6 +30,24 @@
       "description": "Cultural event poster",
       "imageUrl": "https://picsum.photos/seed/culture5/800/600",
       "imageHint": "cultural event"
+    },
+    {
+      "id": "facility-kirazlidere",
+      "description": "Kirazlıdere Social Facility",
+      "imageUrl": "https://picsum.photos/seed/kirazlidere/600/600",
+      "imageHint": "hilltop restaurant"
+    },
+    {
+      "id": "facility-gokcay",
+      "description": "Gökçay Restaurant",
+      "imageUrl": "https://picsum.photos/seed/gokcay/600/600",
+      "imageHint": "garden restaurant"
+    },
+    {
+      "id": "facility-seyir",
+      "description": "Seyir Terası Restaurant",
+      "imageUrl": "https://picsum.photos/seed/seyir/600/600",
+      "imageHint": "city view"
     }
   ]
 }
