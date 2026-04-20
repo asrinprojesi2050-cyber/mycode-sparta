@@ -201,7 +201,7 @@ export default function IspartaKartPage() {
         <section className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Son Hareketler</h2>
-            <button className="text-[10px] font-bold text-primary uppercase tracking-wider">Tümünü Gör</button>
+            <Link href="/isparta-kart/history" className="text-[10px] font-bold text-primary uppercase tracking-wider">Tümünü Gör</Link>
           </div>
           <div className="space-y-3">
             {transactions.map((t) => (
