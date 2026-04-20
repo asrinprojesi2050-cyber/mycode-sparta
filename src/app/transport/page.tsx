@@ -1,8 +1,11 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Bus, MapPin, Clock, Navigation, Accessibility, Wind, Wifi, Info, Search, ChevronRight } from 'lucide-react';
+import { 
+  ArrowLeft, Bus, MapPin, Clock, Navigation, 
+  Accessibility, Wind, Wifi, Info, Search, 
+  ChevronRight, Bell, BellRing, Sparkles 
+} from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { BottomNav } from '@/components/bottom-nav';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const approachingBuses = [
   { 
@@ -40,14 +44,64 @@ const approachingBuses = [
 
 export default function TransportPage() {
   const [loading, setLoading] = useState(true);
+  const [notifiedBuses, setNotifiedBuses] = useState<Set<number>>(new Set());
+  const [activeNotification, setActiveNotification] = useState<typeof approachingBuses[0] | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
 
+  const handleToggleNotification = (bus: typeof approachingBuses[0]) => {
+    const newNotified = new Set(notifiedBuses);
+    if (newNotified.has(bus.id)) {
+      newNotified.delete(bus.id);
+      toast({
+        title: "Bildirim İptal Edildi",
+        description: `${bus.hat} numaralı hat için takip durduruldu.`,
+      });
+    } else {
+      newNotified.add(bus.id);
+      toast({
+        title: "Bildirim Ayarlandı",
+        description: `${bus.hat} numaralı hat yaklaşınca size haber vereceğiz.`,
+      });
+      // Simulate arrival notification after 4 seconds for demo
+      setTimeout(() => {
+        setActiveNotification(bus);
+      }, 4000);
+    }
+    setNotifiedBuses(newNotified);
+  };
+
   return (
-    <div className="pb-24 min-h-screen bg-[#FDFBF9]">
+    <div className="pb-24 min-h-screen bg-[#FDFBF9] overflow-x-hidden">
+      {/* Apple Style Arrival Alert */}
+      {activeNotification && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[90vw] max-w-sm animate-in slide-in-from-top-full duration-500 ease-out">
+          <Card className="bg-[#FDFBF9] border-none shadow-2xl rounded-2xl overflow-hidden ring-1 ring-primary/10">
+            <CardContent className="p-5 flex flex-col items-center text-center gap-4">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                <Sparkles className="h-6 w-6 animate-pulse" />
+              </div>
+              <div>
+                <h4 className="text-primary font-bold text-lg leading-tight">Otobüsün Yaklaşıyor!</h4>
+                <p className="text-xs font-medium text-muted-foreground mt-1">
+                  {activeNotification.hat} Numaralı Hat şu an 1 durak mesafede. Durakta olmaya hazır mısın?
+                </p>
+              </div>
+              <Button 
+                onClick={() => setActiveNotification(null)}
+                className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl font-bold h-10"
+              >
+                Tamam, Hazırım
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Header */}
       <header className="px-6 pt-8 pb-4 flex items-center gap-4 bg-white/50 backdrop-blur-md sticky top-0 z-40">
         <Link href="/dashboard" className="p-2 bg-white rounded-xl shadow-soft border border-border/50">
@@ -59,17 +113,14 @@ export default function TransportPage() {
       <main className="animate-fade-in">
         {/* Simulated Map View */}
         <section className="h-[40vh] relative bg-[#E5E7EB] overflow-hidden">
-          {/* Mock Map Elements */}
           <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-repeat" />
           
-          {/* Map Grid Lines */}
           <div className="absolute inset-0 grid grid-cols-6 grid-rows-8 pointer-events-none">
             {Array.from({ length: 48 }).map((_, i) => (
               <div key={i} className="border-[0.5px] border-black/5" />
             ))}
           </div>
 
-          {/* User Location Marker */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
             <div className="relative">
               <div className="w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg animate-pulse" />
@@ -77,7 +128,6 @@ export default function TransportPage() {
             </div>
           </div>
 
-          {/* Bus Markers (Simulated) */}
           <div className="absolute top-[30%] left-[20%] animate-bounce">
             <div className="flex flex-col items-center">
               <div className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md mb-1">9</div>
@@ -92,7 +142,6 @@ export default function TransportPage() {
             </div>
           </div>
 
-          {/* Map Controls */}
           <div className="absolute bottom-6 right-6 flex flex-col gap-2">
             <button className="p-3 bg-white rounded-xl shadow-lg text-primary border border-border/50">
               <Navigation className="h-5 w-5" />
@@ -102,7 +151,6 @@ export default function TransportPage() {
             </button>
           </div>
 
-          {/* Search Bar on Map */}
           <div className="absolute top-6 left-6 right-6">
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -141,27 +189,44 @@ export default function TransportPage() {
                 </h3>
                 
                 <div className="space-y-3">
-                  {approachingBuses.map((bus) => (
-                    <div key={bus.id} className="flex items-center justify-between p-4 rounded-2xl bg-[#FDFBF9] border border-border/50 group active:scale-[0.98] transition-all">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-primary text-white rounded-xl flex items-center justify-center font-black text-xl shadow-md group-hover:scale-105 transition-transform">
-                          {bus.hat}
-                        </div>
-                        <div>
-                          <p className="font-bold text-sm">{bus.destination}</p>
-                          <div className="flex items-center gap-3 mt-1">
-                            <span className="text-[10px] font-bold text-accent uppercase">{bus.time}</span>
-                            <div className="flex items-center gap-1.5 opacity-40">
-                              {bus.features.disabled && <Accessibility className="h-3 w-3" />}
-                              {bus.features.ac && <Wind className="h-3 w-3" />}
-                              {bus.features.wifi && <Wifi className="h-3 w-3" />}
+                  {approachingBuses.map((bus) => {
+                    const isNotified = notifiedBuses.has(bus.id);
+                    return (
+                      <div key={bus.id} className="flex items-center justify-between p-4 rounded-2xl bg-[#FDFBF9] border border-border/50 group active:scale-[0.98] transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-primary text-white rounded-xl flex items-center justify-center font-black text-xl shadow-md group-hover:scale-105 transition-transform">
+                            {bus.hat}
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm">{bus.destination}</p>
+                            <div className="flex items-center gap-3 mt-1">
+                              <span className="text-[10px] font-bold text-accent uppercase">{bus.time}</span>
+                              <div className="flex items-center gap-1.5 opacity-40">
+                                {bus.features.disabled && <Accessibility className="h-3 w-3" />}
+                                {bus.features.ac && <Wind className="h-3 w-3" />}
+                                {bus.features.wifi && <Wifi className="h-3 w-3" />}
+                              </div>
                             </div>
                           </div>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleNotification(bus);
+                            }}
+                            className={cn(
+                              "p-2 rounded-lg transition-all",
+                              isNotified ? "text-primary bg-primary/10" : "text-muted-foreground/40 hover:text-primary"
+                            )}
+                          >
+                            {isNotified ? <BellRing className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
+                          </button>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground/30" />
+                        </div>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/30" />
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </CardContent>
@@ -175,7 +240,7 @@ export default function TransportPage() {
             <div className="space-y-1">
               <p className="text-xs font-bold text-primary">Bilgilendirme</p>
               <p className="text-[10px] text-primary/70 leading-relaxed font-medium">
-                Otobüslerin konum verileri her 15 saniyede bir güncellenmektedir. Trafik yoğunluğuna göre varış süreleri değişkenlik gösterebilir.
+                Zil ikonuna tıklayarak otobüs yaklaştığında bildirim alabilirsiniz. Veriler her 15 saniyede bir güncellenmektedir.
               </p>
             </div>
           </div>
