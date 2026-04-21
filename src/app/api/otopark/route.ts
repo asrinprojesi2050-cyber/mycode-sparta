@@ -6,7 +6,7 @@ export async function GET() {
       id: 1, 
       name: "Meydan AVM Otoparkı", 
       total: 500, 
-      current: 420, // 80 free in current code, but prompt said 42
+      current: 458, 
       free: 42,
       price: "15₺ / saat", 
       distance: "0.4 km",
