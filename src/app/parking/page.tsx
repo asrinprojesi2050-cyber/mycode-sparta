@@ -4,7 +4,8 @@
 import { useState, useEffect } from 'react';
 import { 
   ArrowLeft, Car, MapPin, Navigation, Info, RefreshCw, 
-  ChevronRight, Loader2, CalendarCheck, QrCode, X, CheckCircle2 
+  ChevronRight, Loader2, CalendarCheck, QrCode, X, CheckCircle2,
+  Clock
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ interface Reservation {
   lotName: string;
   floor: string;
   code: string;
-  expiry: string;
+  expiresAt: number;
 }
 
 export default function ParkingPage() {
@@ -27,6 +28,7 @@ export default function ParkingPage() {
   const [parkingLots, setParkingLots] = useState<any[] | null>(null);
   const [selectedLot, setSelectedLot] = useState<any | null>(null);
   const [activeReservation, setActiveReservation] = useState<Reservation | null>(null);
+  const [timeLeft, setTimeLeft] = useState<string>("");
   const { toast } = useToast();
 
   const fetchData = async () => {
@@ -51,6 +53,34 @@ export default function ParkingPage() {
     const interval = setInterval(fetchData, 15000);
     return () => clearInterval(interval);
   }, [selectedLot?.id]);
+
+  // Canlı Geri Sayım Sayacı
+  useEffect(() => {
+    if (!activeReservation) return;
+
+    const timer = setInterval(() => {
+      const now = Date.now();
+      const diff = activeReservation.expiresAt - now;
+
+      if (diff <= 0) {
+        setActiveReservation(null);
+        setTimeLeft("");
+        toast({
+          variant: "destructive",
+          title: "Süre Doldu",
+          description: "Randevunuz süresi dolduğu için otomatik olarak iptal edilmiştir.",
+        });
+        fetchData();
+        return;
+      }
+
+      const minutes = Math.floor(diff / 1000 / 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [activeReservation]);
 
   const startExternalNavigation = (coords: string) => {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${coords}`, '_blank');
@@ -78,12 +108,12 @@ export default function ParkingPage() {
           lotName: selectedLot.name,
           floor: floorLabel,
           code: resCode,
-          expiry: "15 Dakika"
+          expiresAt: result.expiresAt
         });
         
         toast({
           title: "Randevu Talebi Alındı",
-          description: `${selectedLot.name} ${floorLabel} için yeriniz 15 dakika rezerve edildi.`,
+          description: `${selectedLot.name} ${floorLabel} için yeriniz rezerve edildi.`,
         });
         fetchData();
       } else {
@@ -108,6 +138,7 @@ export default function ParkingPage() {
     toast({
       description: "Randevunuz iptal edildi.",
     });
+    fetchData(); // İptal sonrası verileri tazele
   };
 
   const getStatusInfo = (free: number, total: number) => {
@@ -155,7 +186,10 @@ export default function ParkingPage() {
                     <CheckCircle2 className="h-4 w-4" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Aktif Giriş Kartı</span>
                   </div>
-                  <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-full">{activeReservation.expiry}</span>
+                  <div className="flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full">
+                    <Clock className="h-3 w-3" />
+                    <span className="text-[10px] font-black">{timeLeft || "00:00"}</span>
+                  </div>
                 </div>
                 <CardContent className="p-6 flex flex-col items-center">
                   <div className="text-center mb-4">

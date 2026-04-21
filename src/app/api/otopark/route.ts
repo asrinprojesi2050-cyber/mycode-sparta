@@ -48,8 +48,34 @@ let parkingLots = [
   }
 ];
 
+// Aktif randevuları süreli olarak takip etmek için
+let activeReservations: any[] = [];
+
+// Randevu süresi (ms cinsinden) - 30 Dakika
+const RESERVATION_TIMEOUT = 30 * 60 * 1000;
+
+function cleanupExpiredReservations() {
+  const now = Date.now();
+  const expired = activeReservations.filter(res => now - res.createdAt > RESERVATION_TIMEOUT);
+  
+  expired.forEach(res => {
+    const lot = parkingLots.find(l => l.id === res.lotId);
+    if (lot) {
+      const floor = lot.floors.find(f => f.label === res.floor);
+      if (floor) {
+        floor.free += 1;
+        lot.free += 1;
+      }
+    }
+  });
+
+  activeReservations = activeReservations.filter(res => now - res.createdAt <= RESERVATION_TIMEOUT);
+}
+
 export async function GET() {
-  // Verileri dönerken status stringlerini dinamik oluşturuyoruz
+  // Her istekte süresi dolanları temizle
+  cleanupExpiredReservations();
+
   const data = parkingLots.map(lot => ({
     ...lot,
     floors: lot.floors.map(f => ({
@@ -65,6 +91,8 @@ export async function POST(request: Request) {
   try {
     const { id, floorLabel } = await request.json();
     
+    cleanupExpiredReservations();
+
     const lotIndex = parkingLots.findIndex(l => l.id === id);
     if (lotIndex !== -1) {
       const floorIndex = parkingLots[lotIndex].floors.findIndex(f => f.label === floorLabel);
@@ -74,7 +102,19 @@ export async function POST(request: Request) {
         parkingLots[lotIndex].floors[floorIndex].free -= 1;
         parkingLots[lotIndex].free -= 1;
         
-        return NextResponse.json({ success: true });
+        const expiresAt = Date.now() + RESERVATION_TIMEOUT;
+        
+        activeReservations.push({
+          lotId: id,
+          floor: floorLabel,
+          createdAt: Date.now(),
+          expiresAt: expiresAt
+        });
+        
+        return NextResponse.json({ 
+          success: true, 
+          expiresAt: expiresAt 
+        });
       }
     }
     
