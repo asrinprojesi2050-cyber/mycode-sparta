@@ -1,18 +1,32 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Car, MapPin, Navigation, Info, RefreshCw, ChevronRight, Loader2, CalendarCheck } from 'lucide-react';
+import { 
+  ArrowLeft, Car, MapPin, Navigation, Info, RefreshCw, 
+  ChevronRight, Loader2, CalendarCheck, QrCode, X, CheckCircle2 
+} from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+
+interface Reservation {
+  lotId: number;
+  lotName: string;
+  floor: string;
+  code: string;
+  expiry: string;
+}
 
 export default function ParkingPage() {
   const [loading, setLoading] = useState(true);
   const [parkingLots, setParkingLots] = useState<any[] | null>(null);
   const [selectedLot, setSelectedLot] = useState<any | null>(null);
+  const [activeReservation, setActiveReservation] = useState<Reservation | null>(null);
   const { toast } = useToast();
 
   const fetchData = async () => {
@@ -58,11 +72,19 @@ export default function ParkingPage() {
       const result = await response.json();
 
       if (result.success) {
+        const resCode = `PK-${Math.floor(1000 + Math.random() * 9000)}`;
+        setActiveReservation({
+          lotId: selectedLot.id,
+          lotName: selectedLot.name,
+          floor: floorLabel,
+          code: resCode,
+          expiry: "15 Dakika"
+        });
+        
         toast({
           title: "Randevu Talebi Alındı",
           description: `${selectedLot.name} ${floorLabel} için yeriniz 15 dakika rezerve edildi.`,
         });
-        // Verileri hemen güncelle
         fetchData();
       } else {
         toast({
@@ -79,6 +101,13 @@ export default function ParkingPage() {
         description: "Şu an randevu alınamıyor.",
       });
     }
+  };
+
+  const cancelReservation = () => {
+    setActiveReservation(null);
+    toast({
+      description: "Randevunuz iptal edildi.",
+    });
   };
 
   const getStatusInfo = (free: number, total: number) => {
@@ -114,6 +143,54 @@ export default function ParkingPage() {
       </header>
 
       <main className="px-6 pt-6 animate-fade-in space-y-6 max-w-md mx-auto">
+        
+        {/* Active Reservation Ticket */}
+        {activeReservation && (
+          <section className="animate-in slide-in-from-top-4 duration-500">
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#8D3B4A]/50 to-accent/50 rounded-[2.5rem] blur opacity-25"></div>
+              <Card className="relative border-none bg-white rounded-[2rem] overflow-hidden shadow-2xl border border-primary/5">
+                <div className="bg-[#8D3B4A] p-4 flex justify-between items-center text-white">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Aktif Giriş Kartı</span>
+                  </div>
+                  <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-full">{activeReservation.expiry}</span>
+                </div>
+                <CardContent className="p-6 flex flex-col items-center">
+                  <div className="text-center mb-4">
+                    <h4 className="text-lg font-black text-foreground">{activeReservation.lotName}</h4>
+                    <p className="text-xs font-bold text-primary uppercase">{activeReservation.floor}</p>
+                  </div>
+                  
+                  <div className="p-4 bg-secondary/30 rounded-3xl border-2 border-dashed border-primary/20 mb-4 relative group">
+                    <QrCode className="h-32 w-32 text-[#8D3B4A]" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/40 backdrop-blur-[2px] rounded-3xl">
+                       <p className="text-[10px] font-black text-[#8D3B4A] uppercase tracking-tighter">Bariyerde Okutunuz</p>
+                    </div>
+                  </div>
+
+                  <div className="w-full space-y-4">
+                    <div className="flex justify-between items-center px-4 py-2 bg-primary/5 rounded-xl border border-primary/10">
+                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Randevu Kodu</span>
+                      <span className="text-sm font-mono font-black text-[#8D3B4A]">{activeReservation.code}</span>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button onClick={() => startExternalNavigation(parkingLots?.find(l => l.id === activeReservation.lotId)?.coords || "")} className="flex-1 h-11 rounded-xl bg-primary text-white text-xs font-bold gap-2">
+                        <Navigation className="h-4 w-4" /> Yol Tarifi
+                      </Button>
+                      <Button onClick={cancelReservation} variant="outline" className="flex-1 h-11 rounded-xl border-red-200 text-red-500 hover:bg-red-50 text-xs font-bold">
+                        İptal Et
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        )}
+
         {loading && !parkingLots ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
             <Loader2 className="h-8 w-8 text-primary animate-spin" />
@@ -199,7 +276,7 @@ export default function ParkingPage() {
                         {floor.status}
                       </span>
                     </div>
-                    {!floor.isFull && (
+                    {!floor.isFull && !activeReservation && (
                       <Button 
                         onClick={() => handleBooking(floor.label)}
                         size="sm"
