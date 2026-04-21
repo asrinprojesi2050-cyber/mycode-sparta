@@ -42,15 +42,47 @@ export default function ParkingPage() {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${coords}`, '_blank');
   };
 
-  const handleBooking = (floorLabel: string) => {
-    toast({
-      title: "Randevu Talebi Alındı",
-      description: `${selectedLot.name} ${floorLabel} için yeriniz 15 dakika rezerve edildi.`,
-    });
+  const handleBooking = async (floorLabel: string) => {
+    try {
+      const response = await fetch('/api/otopark', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: selectedLot.id,
+          floorLabel: floorLabel
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "Randevu Talebi Alındı",
+          description: `${selectedLot.name} ${floorLabel} için yeriniz 15 dakika rezerve edildi.`,
+        });
+        // Verileri hemen güncelle
+        fetchData();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: result.message || "Randevu alınamadı.",
+        });
+      }
+    } catch (error) {
+      console.error('Randevu hatası:', error);
+      toast({
+        variant: "destructive",
+        title: "Sistem Hatası",
+        description: "Şu an randevu alınamıyor.",
+      });
+    }
   };
 
   const getStatusInfo = (free: number, total: number) => {
-    if (free === 0) return { label: "DOLU", color: "bg-red-100 text-[#8D3B4A] border-red-200" };
+    if (free <= 0) return { label: "DOLU", color: "bg-red-100 text-[#8D3B4A] border-red-200" };
     const occupancy = ((total - free) / total) * 100;
     if (occupancy > 85) return { label: "KRİTİK", color: "bg-orange-100 text-orange-600 border-orange-200" };
     return { label: "MÜSAİT", color: "bg-green-100 text-green-600 border-green-200" };
