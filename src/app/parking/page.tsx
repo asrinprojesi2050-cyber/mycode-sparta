@@ -1,72 +1,49 @@
-
 "use client"
 
-import { useState } from 'react';
-import { ArrowLeft, Car, MapPin, Navigation, Info, RefreshCw, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Car, MapPin, Navigation, Info, RefreshCw, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
 import { cn } from '@/lib/utils';
 
-const parkingLots = [
-  { 
-    id: 1, 
-    name: "Merkez Belediye Otoparkı", 
-    total: 500, 
-    current: 420, 
-    price: "15₺ / saat", 
-    distance: "0.4 km",
-    coords: "37.7648,30.5566",
-    floors: [
-      { label: "Zemin Kat", status: "12 Boş Yer", isFull: false },
-      { label: "-1. Kat", status: "DOLU", isFull: true },
-      { label: "-2. Kat", status: "45 Boş Yer", isFull: false },
-    ],
-    advice: "Şu an -2. Kat daha müsait, oraya yönlenebilirsiniz."
-  },
-  { 
-    id: 2, 
-    name: "Iyaşpark Yan Otopark", 
-    total: 350, 
-    current: 80, 
-    price: "Ücretsiz", 
-    distance: "1.2 km",
-    coords: "37.7833,30.5500",
-    floors: [
-      { label: "Zemin Kat", status: "85 Boş Yer", isFull: false },
-      { label: "-1. Kat", status: "120 Boş Yer", isFull: false },
-    ],
-    advice: "Tüm katlar müsait, rahatça park edebilirsiniz."
-  },
-  { 
-    id: 3, 
-    name: "Hızırbey Çok Katlı", 
-    total: 200, 
-    current: 185, 
-    price: "10₺ / saat", 
-    distance: "2.1 km",
-    coords: "37.7600,30.5400",
-    floors: [
-      { label: "Zemin Kat", status: "DOLU", isFull: true },
-      { label: "-1. Kat", status: "5 Boş Yer", isFull: false },
-      { label: "-2. Kat", status: "10 Boş Yer", isFull: false },
-    ],
-    advice: "Giriş kat dolu, lütfen alt katlara ilerleyiniz."
-  }
-];
-
 export default function ParkingPage() {
-  const [loading, setLoading] = useState(false);
-  const [selectedLot, setSelectedLot] = useState<typeof parkingLots[0] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [parkingLots, setParkingLots] = useState<any[] | null>(null);
+  const [selectedLot, setSelectedLot] = useState<any | null>(null);
 
-  const refreshData = () => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 800);
+  const fetchData = async () => {
+    try {
+      const response = await fetch('/api/otopark');
+      const data = await response.json();
+      setParkingLots(data);
+      if (selectedLot) {
+        const updatedSelected = data.find((l: any) => l.id === selectedLot.id);
+        if (updatedSelected) setSelectedLot(updatedSelected);
+      }
+    } catch (error) {
+      console.error('Veri çekilemedi:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 15000); // 15 saniyede bir güncelle
+    return () => clearInterval(interval);
+  }, [selectedLot?.id]);
 
   const startExternalNavigation = (coords: string) => {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${coords}`, '_blank');
+  };
+
+  const getStatusInfo = (free: number, total: number) => {
+    const occupancy = ((total - free) / total) * 100;
+    if (free === 0) return { label: "DOLU", color: "bg-red-100 text-[#8D3B4A] border-red-200" };
+    if (occupancy > 85) return { label: "KRİTİK", color: "bg-orange-100 text-orange-600 border-orange-200" };
+    return { label: "MÜSAİT", color: "bg-green-100 text-green-600 border-green-200" };
   };
 
   return (
@@ -86,7 +63,7 @@ export default function ParkingPage() {
         </div>
         {!selectedLot && (
           <button 
-            onClick={refreshData} 
+            onClick={() => { setLoading(true); fetchData(); }} 
             className={cn("p-2 text-primary transition-all", loading && "animate-spin")}
           >
             <RefreshCw className="h-5 w-5" />
@@ -95,39 +72,55 @@ export default function ParkingPage() {
       </header>
 
       <main className="px-6 pt-6 animate-fade-in space-y-6 max-w-md mx-auto">
-        {!selectedLot ? (
+        {loading && !parkingLots ? (
+          <div className="flex flex-col items-center justify-center py-20 space-y-4">
+            <Loader2 className="h-8 w-8 text-primary animate-spin" />
+            <p className="text-sm font-bold text-muted-foreground animate-pulse">Veriler taranıyor...</p>
+          </div>
+        ) : !selectedLot ? (
           <>
             <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 flex items-start gap-3">
               <Info className="h-5 w-5 text-primary shrink-0" />
               <p className="text-xs text-primary/80 leading-relaxed font-medium">
-                Isparta genelindeki akıllı otoparkların güncel durumlarını buradan takip edebilirsiniz.
+                Isparta genelindeki akıllı otoparkların 15 saniyede bir güncellenen canlı durumları.
               </p>
             </div>
 
             <div className="space-y-4">
-              {parkingLots.map((lot) => (
-                <Card 
-                  key={lot.id} 
-                  className="border-none shadow-soft rounded-2xl overflow-hidden bg-white cursor-pointer active:scale-[0.98] transition-all"
-                  onClick={() => setSelectedLot(lot)}
-                >
-                  <CardContent className="p-5 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center text-primary">
-                        <Car className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm mb-0.5">{lot.name}</h4>
-                        <div className="flex items-center gap-2">
-                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">{lot.distance}</span>
-                           <span className="text-[10px] font-black text-accent uppercase tracking-tight">{lot.price}</span>
+              {parkingLots?.map((lot) => {
+                const status = getStatusInfo(lot.free, lot.total);
+                return (
+                  <Card 
+                    key={lot.id} 
+                    className="border-none shadow-soft rounded-2xl overflow-hidden bg-white cursor-pointer active:scale-[0.98] transition-all"
+                    onClick={() => setSelectedLot(lot)}
+                  >
+                    <CardContent className="p-5 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center text-primary">
+                          <Car className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-sm mb-0.5">{lot.name}</h4>
+                          <div className="flex items-center gap-2">
+                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">{lot.distance}</span>
+                             <span className="text-[10px] font-black text-accent uppercase tracking-tight">{lot.price}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground/30" />
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="flex items-center gap-3">
+                        <span className={cn(
+                          "px-2 py-1 rounded-md text-[8px] font-black border",
+                          status.color
+                        )}>
+                          {status.label}
+                        </span>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground/30" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </>
         ) : (
@@ -144,20 +137,20 @@ export default function ParkingPage() {
             {/* Floor Cards */}
             <div className="space-y-3">
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Kat Bazlı Durum</h3>
-              {selectedLot.floors.map((floor, idx) => (
+              {selectedLot.floors.map((floor: any, idx: number) => (
                 <div 
                   key={idx} 
                   className={cn(
                     "flex items-center justify-between p-5 rounded-2xl border transition-all",
                     floor.isFull 
-                      ? "bg-primary/5 border-primary/20 text-primary" 
-                      : "bg-white border-border/50 text-foreground shadow-sm"
+                      ? "bg-[#8D3B4A]/5 border-[#8D3B4A]/20 text-[#8D3B4A]" 
+                      : "bg-[#FDFBF9] border-border/50 text-foreground shadow-sm"
                   )}
                 >
                   <span className="text-sm font-bold uppercase tracking-wider">{floor.label}</span>
                   <span className={cn(
                     "text-xs font-black uppercase tracking-widest",
-                    floor.isFull ? "text-primary" : "text-green-600"
+                    floor.isFull ? "text-[#8D3B4A]" : "text-green-600"
                   )}>
                     {floor.status}
                   </span>
@@ -185,10 +178,6 @@ export default function ParkingPage() {
               <Navigation className="h-6 w-6" />
               Navigasyonu Başlat
             </Button>
-
-            <p className="text-center text-[10px] text-muted-foreground font-medium uppercase tracking-[0.1em] px-8">
-              Navigasyon sizi otoparkın ana giriş kapısına kadar yönlendirecektir.
-            </p>
           </div>
         )}
       </main>
