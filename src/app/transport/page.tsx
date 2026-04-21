@@ -1,11 +1,11 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
 import { 
   ArrowLeft, Bus, MapPin, Navigation, 
   Wifi, Info, Loader2, Search,
-  ChevronRight, Bell, BellRing, QrCode, Sparkles, Map as MapIcon
+  ChevronRight, Bell, BellRing, QrCode, Sparkles, Map as MapIcon,
+  Users
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ interface BusInfo {
   durak: string;
   kalanDakika: number;
   durum: string;
+  doluluk: 'Sakin' | 'Normal' | 'Kalabalık';
 }
 
 export default function TransportPage() {
@@ -68,6 +69,19 @@ export default function TransportPage() {
     setNotifiedBuses(newNotified);
   };
 
+  const getOccupancyStyles = (doluluk: string) => {
+    switch (doluluk) {
+      case 'Sakin':
+        return 'bg-green-50 text-green-700 border-green-100';
+      case 'Normal':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-100';
+      case 'Kalabalık':
+        return 'bg-red-50 text-[#8D3B4A] border-red-100';
+      default:
+        return 'bg-secondary text-muted-foreground';
+    }
+  };
+
   return (
     <div className="pb-32 min-h-screen bg-[#FDFBF9]">
       <header className="px-6 pt-8 pb-4 flex items-center gap-4 bg-white/50 backdrop-blur-md sticky top-0 z-40 border-b border-border/10">
@@ -98,7 +112,6 @@ export default function TransportPage() {
                 <span className="text-[10px] font-black uppercase tracking-widest">Canlı Haritayı Görüntüle</span>
               </div>
             </div>
-            {/* Harita Placeholder Deseni */}
             <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #8D3B4A 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
           </Card>
         </section>
@@ -126,7 +139,7 @@ export default function TransportPage() {
                 return (
                   <Card key={bus.id} className="border-none shadow-soft rounded-2xl bg-white overflow-hidden active:scale-[0.99] transition-transform relative group">
                     <CardContent className="p-0">
-                      <div className="flex items-stretch min-h-[90px]">
+                      <div className="flex items-stretch min-h-[100px]">
                         {/* Hat No Kutusu */}
                         <div className="w-20 bg-[#8D3B4A] flex flex-col items-center justify-center text-white">
                           <span className="text-2xl font-black">{bus.hat}</span>
@@ -138,7 +151,16 @@ export default function TransportPage() {
                           <div className="flex justify-between items-start">
                             <div>
                               <h4 className="font-bold text-sm text-foreground">{bus.guzergah}</h4>
-                              <p className="text-[10px] text-muted-foreground font-medium">{bus.durak}</p>
+                              <p className="text-[10px] text-muted-foreground font-medium mb-2">{bus.durak}</p>
+                              
+                              {/* Doluluk Rozeti */}
+                              <div className={cn(
+                                "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tight border",
+                                getOccupancyStyles(bus.doluluk)
+                              )}>
+                                <Users className="h-2.5 w-2.5" />
+                                {bus.doluluk}
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-tighter">Kalan Süre</p>
@@ -146,7 +168,7 @@ export default function TransportPage() {
                             </div>
                           </div>
                           
-                          <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center justify-between mt-3">
                             {isApproaching && (
                               <div className="flex items-center gap-1 bg-[#8D3B4A]/10 text-[#8D3B4A] px-2 py-0.5 rounded-full animate-pulse">
                                 <Sparkles className="h-2.5 w-2.5" />
@@ -190,7 +212,7 @@ export default function TransportPage() {
           <div className="space-y-1">
             <p className="text-xs font-bold text-primary">Akıllı Takip Asistanı</p>
             <p className="text-[10px] text-primary/70 leading-relaxed font-medium uppercase">
-              Seçtiğiniz hat durağa yaklaşınca anlık bildirim alacaksınız. Rota planlayıcı ile şehrin her noktasına en hızlı ulaşımı keşfedin.
+              Otobüslerin doluluk oranlarını canlı takip ederek konforlu bir yolculuk planlayabilirsiniz. Sakin hatlar daha keyifli bir seyahat sunar.
             </p>
           </div>
         </div>
