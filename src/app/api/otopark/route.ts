@@ -73,7 +73,6 @@ function cleanupExpiredReservations() {
 }
 
 export async function GET() {
-  // Her istekte süresi dolanları temizle
   cleanupExpiredReservations();
 
   const data = parkingLots.map(lot => ({
@@ -98,7 +97,6 @@ export async function POST(request: Request) {
       const floorIndex = parkingLots[lotIndex].floors.findIndex(f => f.label === floorLabel);
       
       if (floorIndex !== -1 && parkingLots[lotIndex].floors[floorIndex].free > 0) {
-        // Boş yer sayısını azalt
         parkingLots[lotIndex].floors[floorIndex].free -= 1;
         parkingLots[lotIndex].free -= 1;
         
@@ -119,6 +117,32 @@ export async function POST(request: Request) {
     }
     
     return NextResponse.json({ success: false, message: "Yer bulunamadı veya kat dolu." }, { status: 400 });
+  } catch (error) {
+    return NextResponse.json({ success: false, message: "Geçersiz istek." }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { id, floorLabel } = await request.json();
+    
+    const lotIndex = parkingLots.findIndex(l => l.id === id);
+    if (lotIndex !== -1) {
+      const floorIndex = parkingLots[lotIndex].floors.findIndex(f => f.label === floorLabel);
+      
+      if (floorIndex !== -1) {
+        // Kontenjanı geri yükle
+        parkingLots[lotIndex].floors[floorIndex].free += 1;
+        parkingLots[lotIndex].free += 1;
+        
+        // Aktif randevulardan temizle
+        activeReservations = activeReservations.filter(res => !(res.lotId === id && res.floor === floorLabel));
+        
+        return NextResponse.json({ success: true });
+      }
+    }
+    
+    return NextResponse.json({ success: false, message: "İptal edilecek randevu bulunamadı." }, { status: 404 });
   } catch (error) {
     return NextResponse.json({ success: false, message: "Geçersiz istek." }, { status: 500 });
   }

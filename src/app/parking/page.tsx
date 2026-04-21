@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -54,7 +53,6 @@ export default function ParkingPage() {
     return () => clearInterval(interval);
   }, [selectedLot?.id]);
 
-  // Canlı Geri Sayım Sayacı
   useEffect(() => {
     if (!activeReservation) return;
 
@@ -133,12 +131,44 @@ export default function ParkingPage() {
     }
   };
 
-  const cancelReservation = () => {
-    setActiveReservation(null);
-    toast({
-      description: "Randevunuz iptal edildi.",
-    });
-    fetchData(); // İptal sonrası verileri tazele
+  const cancelReservation = async () => {
+    if (!activeReservation) return;
+
+    try {
+      const response = await fetch('/api/otopark', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: activeReservation.lotId,
+          floorLabel: activeReservation.floor
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setActiveReservation(null);
+        toast({
+          description: "Randevunuz iptal edildi ve kontenjan geri yüklendi.",
+        });
+        fetchData(); // İptal sonrası verileri anında tazele
+      } else {
+        toast({
+          variant: "destructive",
+          title: "İptal Hatası",
+          description: result.message || "Randevu iptal edilemedi.",
+        });
+      }
+    } catch (error) {
+      console.error('İptal hatası:', error);
+      toast({
+        variant: "destructive",
+        title: "Sistem Hatası",
+        description: "İptal işlemi şu an gerçekleştirilemiyor.",
+      });
+    }
   };
 
   const getStatusInfo = (free: number, total: number) => {
