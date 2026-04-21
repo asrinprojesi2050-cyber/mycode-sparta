@@ -61,8 +61,8 @@ export default function TransportPage() {
     } else {
       newNotified.add(bus.id);
       toast({
-        title: "Akıllı Takip Aktif",
-        description: `Bildirim Açık! ${bus.hat} numaralı araç durağa yaklaştığında uyarılacaksınız.`,
+        title: "🔔 Bildirim Açık",
+        description: `${bus.hat} numaralı araç durağa yaklaştığında uyarılacaksınız!`,
       });
     }
     setNotifiedBuses(newNotified);
@@ -154,16 +154,19 @@ export default function TransportPage() {
                               </div>
                             )}
                             <button 
-                              onClick={() => handleToggleNotification(bus)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleNotification(bus);
+                              }}
                               className={cn(
                                 "ml-auto w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
                                 isNotified 
-                                  ? "bg-primary text-white shadow-lg scale-110" 
-                                  : "bg-primary/5 text-primary/40 hover:text-primary hover:bg-primary/10"
+                                  ? "bg-primary/10 text-primary shadow-inner scale-105" 
+                                  : "text-muted-foreground/40 hover:text-primary/60 hover:bg-primary/5"
                               )}
                             >
                               {isNotified ? (
-                                <BellRing className="h-5 w-5 fill-white animate-bounce" />
+                                <BellRing className="h-5 w-5 fill-primary animate-bounce" />
                               ) : (
                                 <Bell className="h-5 w-5" />
                               )}
