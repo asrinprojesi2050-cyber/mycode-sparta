@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import { 
   ArrowLeft, Car, MapPin, Navigation, Info, RefreshCw, 
   ChevronRight, Loader2, CalendarCheck, QrCode, X, CheckCircle2,
-  Clock
+  Clock, Wallet, Sparkles, ShieldCheck
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,13 +22,33 @@ interface Reservation {
   expiresAt: number;
 }
 
+interface WalletData {
+  bakiye: number;
+  gulPuan: number;
+}
+
 export default function ParkingPage() {
   const [loading, setLoading] = useState(true);
   const [parkingLots, setParkingLots] = useState<any[] | null>(null);
   const [selectedLot, setSelectedLot] = useState<any | null>(null);
   const [activeReservation, setActiveReservation] = useState<Reservation | null>(null);
   const [timeLeft, setTimeLeft] = useState<string>("");
+  const [wallet, setWallet] = useState<WalletData | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [pendingFloor, setPendingFloor] = useState<string | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  
   const { toast } = useToast();
+
+  const fetchWallet = async () => {
+    try {
+      const res = await fetch('/api/cuzdan');
+      const data = await res.json();
+      setWallet(data);
+    } catch (error) {
+      console.error('Cüzdan çekilemedi');
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -49,6 +69,7 @@ export default function ParkingPage() {
 
   useEffect(() => {
     fetchData();
+    fetchWallet();
     const interval = setInterval(fetchData, 15000);
     return () => clearInterval(interval);
   }, [selectedLot?.id]);
@@ -84,16 +105,46 @@ export default function ParkingPage() {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${coords}`, '_blank');
   };
 
-  const handleBooking = async (floorLabel: string) => {
+  const initiateBooking = (floorLabel: string) => {
+    setPendingFloor(floorLabel);
+    setIsPaymentModalOpen(true);
+  };
+
+  const confirmPaymentAndBook = async (method: 'balance' | 'points') => {
+    if (!pendingFloor || !selectedLot || !wallet) return;
+    
+    setIsProcessingPayment(true);
+    
     try {
+      // Ödeme İşlemi
+      const paymentRes = await fetch('/api/cuzdan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: method === 'balance' ? 'deduct_balance' : 'deduct_points',
+          amount: method === 'balance' ? 20 : 200
+        })
+      });
+
+      const paymentResult = await paymentRes.json();
+      
+      if (!paymentResult.success) {
+        toast({
+          variant: "destructive",
+          title: "Ödeme Başarısız",
+          description: paymentResult.message,
+        });
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      // Randevu İşlemi
       const response = await fetch('/api/otopark', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: selectedLot.id,
-          floorLabel: floorLabel
+          floorLabel: pendingFloor
         })
       });
 
@@ -104,30 +155,62 @@ export default function ParkingPage() {
         setActiveReservation({
           lotId: selectedLot.id,
           lotName: selectedLot.name,
-          floor: floorLabel,
+          floor: pendingFloor,
           code: resCode,
           expiresAt: result.expiresAt
         });
         
         toast({
-          title: "Randevu Talebi Alındı",
-          description: `${selectedLot.name} ${floorLabel} için yeriniz rezerve edildi.`,
+          title: "Ödeme ve Randevu Başarılı",
+          description: `${selectedLot.name} için yeriniz rezerve edildi.`,
         });
+        
+        setWallet(paymentResult.data);
+        setIsPaymentModalOpen(false);
+        setPendingFloor(null);
         fetchData();
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Hata",
-          description: result.message || "Randevu alınamadı.",
-        });
       }
     } catch (error) {
-      console.error('Randevu hatası:', error);
       toast({
         variant: "destructive",
         title: "Sistem Hatası",
-        description: "Şu an randevu alınamıyor.",
+        description: "İşlem şu an gerçekleştirilemiyor.",
       });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const handleBarierPass = async () => {
+    if (!activeReservation) return;
+
+    try {
+      // Ödül Puanı Ekle
+      const rewardRes = await fetch('/api/cuzdan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add_points', amount: 50 })
+      });
+      const rewardData = await rewardRes.json();
+
+      // Randevuyu Temizle (Bariyerden geçtiği için otopark API'sini de tetikleyebiliriz ama şimdilik iptal mantığıyla aynı)
+      await fetch('/api/otopark', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeReservation.lotId, floorLabel: activeReservation.floor })
+      });
+
+      setActiveReservation(null);
+      setWallet(rewardData.data);
+      
+      toast({
+        title: "Giriş Başarılı",
+        description: "Zamanında giriş yaptığınız için +50 Gül Puan kazandınız!",
+      });
+      
+      fetchData();
+    } catch (error) {
+      console.error('Bariyer hatası');
     }
   };
 
@@ -137,9 +220,7 @@ export default function ParkingPage() {
     try {
       const response = await fetch('/api/otopark', {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: activeReservation.lotId,
           floorLabel: activeReservation.floor
@@ -151,21 +232,14 @@ export default function ParkingPage() {
       if (result.success) {
         setActiveReservation(null);
         toast({
-          description: "Randevunuz iptal edildi ve kontenjan geri yüklendi.",
+          description: "Randevunuz iptal edildi.",
         });
         fetchData();
-      } else {
-        toast({
-          variant: "destructive",
-          title: "İptal Hatası",
-          description: result.message || "Randevu iptal edilemedi.",
-        });
       }
     } catch (error) {
-      console.error('İptal hatası:', error);
       toast({
         variant: "destructive",
-        title: "Sistem Hatası",
+        title: "İptal Hatası",
         description: "İptal işlemi şu an gerçekleştirilemiyor.",
       });
     }
@@ -180,7 +254,6 @@ export default function ParkingPage() {
 
   return (
     <div className="pb-24 min-h-screen bg-[#FDFBF9]">
-      {/* Header */}
       <header className="px-6 pt-8 pb-4 flex items-center justify-between bg-white/50 backdrop-blur-md sticky top-0 z-40 border-b border-border/10">
         <div className="flex items-center gap-4">
           <button 
@@ -193,65 +266,62 @@ export default function ParkingPage() {
             {selectedLot ? "Otopark Detayı" : "Otopark Doluluk"}
           </h1>
         </div>
-        {!selectedLot && (
-          <button 
-            onClick={() => { setLoading(true); fetchData(); }} 
-            className={cn("p-2 text-primary transition-all", loading && "animate-spin")}
-          >
-            <RefreshCw className="h-5 w-5" />
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {wallet && (
+            <div className="px-3 py-1 bg-white border border-border rounded-lg shadow-sm flex items-center gap-2">
+               <Wallet className="h-3 w-3 text-primary" />
+               <span className="text-[10px] font-bold text-primary">{wallet.bakiye.toFixed(2)} ₺</span>
+            </div>
+          )}
+        </div>
       </header>
 
       <main className="px-6 pt-6 animate-fade-in space-y-6 max-w-md mx-auto">
         
-        {/* Active Reservation Ticket */}
         {activeReservation && (
           <section className="animate-in slide-in-from-top-4 duration-500">
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#8D3B4A]/50 to-accent/50 rounded-[2.5rem] blur opacity-25"></div>
-              <Card className="relative border-none bg-white rounded-[2rem] overflow-hidden shadow-2xl border border-primary/5">
-                <div className="bg-[#8D3B4A] p-4 flex justify-between items-center text-white">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Aktif Giriş Kartı</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full">
-                    <Clock className="h-3 w-3" />
-                    <span className="text-[10px] font-black">{timeLeft || "00:00"}</span>
-                  </div>
+            <Card className="relative border-none bg-white rounded-[2rem] overflow-hidden shadow-2xl border border-primary/5">
+              <div className="bg-[#8D3B4A] p-4 flex justify-between items-center text-white">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Aktif Giriş Kartı</span>
                 </div>
-                <CardContent className="p-6 flex flex-col items-center">
-                  <div className="text-center mb-4">
-                    <h4 className="text-lg font-black text-foreground">{activeReservation.lotName}</h4>
-                    <p className="text-xs font-bold text-primary uppercase">{activeReservation.floor}</p>
+                <div className="flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full">
+                  <Clock className="h-3 w-3" />
+                  <span className="text-[10px] font-black">{timeLeft || "00:00"}</span>
+                </div>
+              </div>
+              <CardContent className="p-6 flex flex-col items-center">
+                <div className="text-center mb-4">
+                  <h4 className="text-lg font-black text-foreground">{activeReservation.lotName}</h4>
+                  <p className="text-xs font-bold text-primary uppercase">{activeReservation.floor}</p>
+                </div>
+                
+                <div className="p-4 bg-secondary/30 rounded-3xl border-2 border-dashed border-primary/20 mb-4">
+                  <QrCode className="h-32 w-32 text-[#8D3B4A]" />
+                </div>
+
+                <div className="w-full space-y-3">
+                  <div className="flex justify-between items-center px-4 py-2 bg-primary/5 rounded-xl border border-primary/10">
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Randevu Kodu</span>
+                    <span className="text-sm font-mono font-black text-[#8D3B4A]">{activeReservation.code}</span>
                   </div>
                   
-                  <div className="p-4 bg-secondary/30 rounded-3xl border-2 border-dashed border-primary/20 mb-4 relative group">
-                    <QrCode className="h-32 w-32 text-[#8D3B4A]" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/40 backdrop-blur-[2px] rounded-3xl">
-                       <p className="text-[10px] font-black text-[#8D3B4A] uppercase tracking-tighter">Bariyerde Okutunuz</p>
-                    </div>
-                  </div>
+                  <Button onClick={handleBarierPass} className="w-full h-11 bg-accent hover:bg-accent/90 text-white rounded-xl text-xs font-bold gap-2 animate-pulse">
+                    Bariyerden Geç (Test)
+                  </Button>
 
-                  <div className="w-full space-y-4">
-                    <div className="flex justify-between items-center px-4 py-2 bg-primary/5 rounded-xl border border-primary/10">
-                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Randevu Kodu</span>
-                      <span className="text-sm font-mono font-black text-[#8D3B4A]">{activeReservation.code}</span>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button onClick={() => startExternalNavigation(parkingLots?.find(l => l.id === activeReservation.lotId)?.coords || "")} className="flex-1 h-11 rounded-xl bg-primary text-white text-xs font-bold gap-2">
-                        <Navigation className="h-4 w-4" /> Yol Tarifi
-                      </Button>
-                      <Button onClick={cancelReservation} variant="outline" className="flex-1 h-11 rounded-xl border-red-200 text-red-500 hover:bg-red-50 text-xs font-bold">
-                        İptal Et
-                      </Button>
-                    </div>
+                  <div className="flex gap-2">
+                    <Button onClick={() => startExternalNavigation(parkingLots?.find(l => l.id === activeReservation.lotId)?.coords || "")} className="flex-1 h-11 rounded-xl bg-primary text-white text-xs font-bold gap-2">
+                      <Navigation className="h-4 w-4" /> Yol Tarifi
+                    </Button>
+                    <Button onClick={cancelReservation} variant="outline" className="flex-1 h-11 rounded-xl border-red-200 text-red-500 hover:bg-red-50 text-xs font-bold">
+                      İptal Et
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           </section>
         )}
 
@@ -265,7 +335,7 @@ export default function ParkingPage() {
             <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 flex items-start gap-3">
               <Info className="h-5 w-5 text-primary shrink-0" />
               <p className="text-xs text-primary/80 leading-relaxed font-medium">
-                Isparta genelindeki akıllı otoparkların 15 saniyede bir güncellenen canlı durumları.
+                Isparta genelindeki akıllı otoparkların canlı durumları.
               </p>
             </div>
 
@@ -308,7 +378,6 @@ export default function ParkingPage() {
           </>
         ) : (
           <div className="space-y-8 animate-in slide-in-from-right-5 duration-300">
-            {/* Lot Summary */}
             <div className="text-center space-y-2">
               <h2 className="text-2xl font-black text-foreground tracking-tight">{selectedLot.name}</h2>
               <div className="flex justify-center items-center gap-2 text-xs font-bold text-muted-foreground">
@@ -317,7 +386,6 @@ export default function ParkingPage() {
               </div>
             </div>
 
-            {/* Floor Status with Booking */}
             <div className="space-y-4">
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Kat Bazlı Doluluk</h3>
               {selectedLot.floors.map((floor: any, idx: number) => (
@@ -342,11 +410,11 @@ export default function ParkingPage() {
                     </div>
                     {!activeReservation && (
                       <Button 
-                        onClick={() => handleBooking(floor.label)}
+                        onClick={() => initiateBooking(floor.label)}
                         disabled={floor.isFull}
                         size="sm"
                         className={cn(
-                          "h-9 px-4 rounded-xl text-[10px] font-bold uppercase tracking-wider gap-2 shadow-lg transition-all",
+                          "h-9 px-4 rounded-xl text-[10px] font-bold uppercase tracking-wider gap-2 shadow-lg",
                           floor.isFull 
                             ? "bg-secondary text-muted-foreground/50 cursor-not-allowed shadow-none" 
                             : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
@@ -361,19 +429,6 @@ export default function ParkingPage() {
               ))}
             </div>
 
-            {/* Smart Advice */}
-            <div className="bg-white p-6 rounded-3xl border-2 border-primary/10 shadow-soft relative overflow-hidden">
-               <div className="absolute top-0 left-0 w-1.5 h-full bg-primary" />
-               <div className="flex items-center gap-3 mb-2">
-                  <Info className="h-4 w-4 text-primary" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-primary">Akıllı Yönlendirme</span>
-               </div>
-               <p className="text-sm font-bold text-foreground leading-relaxed">
-                 {selectedLot.advice}
-               </p>
-            </div>
-
-            {/* Navigation Button */}
             <Button 
               onClick={() => startExternalNavigation(selectedLot.coords)}
               className="w-full h-16 rounded-[2rem] bg-primary hover:bg-primary/90 text-white font-black text-base shadow-2xl shadow-primary/20 flex items-center justify-center gap-3 transition-all active:scale-95"
@@ -384,6 +439,71 @@ export default function ParkingPage() {
           </div>
         )}
       </main>
+
+      {/* Payment Selection Modal */}
+      <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-md rounded-3xl p-6 bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-primary">Ödeme Onayı</DialogTitle>
+            <DialogDescription className="text-center text-xs font-medium">
+              {selectedLot?.name} - {pendingFloor} için randevunuzu onaylayın.
+            </DialogDescription>
+          </DialogHeader>
+
+          {isProcessingPayment ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-4">
+               <Loader2 className="h-10 w-10 text-primary animate-spin" />
+               <p className="text-sm font-bold text-primary animate-pulse">İşlem Yapılıyor...</p>
+            </div>
+          ) : (
+            <div className="space-y-4 py-4">
+               <button 
+                 onClick={() => confirmPaymentAndBook('balance')}
+                 className="w-full p-4 rounded-2xl bg-primary/5 border border-primary/10 hover:border-primary transition-all text-left flex items-center justify-between group"
+               >
+                  <div className="flex items-center gap-3">
+                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <Wallet className="h-5 w-5" />
+                     </div>
+                     <div>
+                        <p className="text-sm font-bold text-foreground">Isparta Kart Bakiyesi</p>
+                        <p className="text-[10px] text-muted-foreground">Mevcut: {wallet?.bakiye.toFixed(2)} ₺</p>
+                     </div>
+                  </div>
+                  <div className="text-right">
+                     <p className="text-sm font-black text-primary">-20.00 ₺</p>
+                  </div>
+               </button>
+
+               <button 
+                 onClick={() => confirmPaymentAndBook('points')}
+                 className="w-full p-4 rounded-2xl bg-reward/5 border border-reward/10 hover:border-reward transition-all text-left flex items-center justify-between group"
+               >
+                  <div className="flex items-center gap-3">
+                     <div className="w-10 h-10 rounded-xl bg-reward/10 flex items-center justify-center text-reward">
+                        <Sparkles className="h-5 w-5" />
+                     </div>
+                     <div>
+                        <p className="text-sm font-bold text-foreground">Gül Puan ile Öde</p>
+                        <p className="text-[10px] text-muted-foreground">Mevcut: {wallet?.gulPuan} Puan</p>
+                     </div>
+                  </div>
+                  <div className="text-right">
+                     <p className="text-sm font-black text-reward">-200 Puan</p>
+                  </div>
+               </button>
+
+               <div className="flex items-center justify-center gap-2 pt-2">
+                  <ShieldCheck className="h-4 w-4 text-primary opacity-40" />
+                  <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">Güvenli Ödeme Sistemi</span>
+               </div>
+            </div>
+          )}
+          <DialogFooter>
+             <Button variant="ghost" onClick={() => setIsPaymentModalOpen(false)} className="w-full text-xs font-bold text-muted-foreground">Vazgeç</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>
