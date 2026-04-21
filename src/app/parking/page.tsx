@@ -153,7 +153,7 @@ export default function ParkingPage() {
         toast({
           description: "Randevunuz iptal edildi ve kontenjan geri yüklendi.",
         });
-        fetchData(); // İptal sonrası verileri anında tazele
+        fetchData();
       } else {
         toast({
           variant: "destructive",
@@ -326,7 +326,7 @@ export default function ParkingPage() {
                   className={cn(
                     "border-none shadow-sm rounded-2xl transition-all overflow-hidden",
                     floor.isFull 
-                      ? "bg-[#8D3B4A]/5 border-[#8D3B4A]/20" 
+                      ? "bg-secondary/20 border-border/10" 
                       : "bg-white border border-border/30 shadow-soft"
                   )}
                 >
@@ -335,16 +335,22 @@ export default function ParkingPage() {
                       <span className="text-sm font-bold block mb-0.5">{floor.label}</span>
                       <span className={cn(
                         "text-[10px] font-black uppercase tracking-widest",
-                        floor.isFull ? "text-[#8D3B4A]" : "text-green-600"
+                        floor.isFull ? "text-[#8D3B4A]/60" : "text-green-600"
                       )}>
                         {floor.status}
                       </span>
                     </div>
-                    {!floor.isFull && !activeReservation && (
+                    {!activeReservation && (
                       <Button 
                         onClick={() => handleBooking(floor.label)}
+                        disabled={floor.isFull}
                         size="sm"
-                        className="h-9 px-4 rounded-xl bg-primary hover:bg-primary/90 text-white text-[10px] font-bold uppercase tracking-wider gap-2 shadow-lg shadow-primary/20"
+                        className={cn(
+                          "h-9 px-4 rounded-xl text-[10px] font-bold uppercase tracking-wider gap-2 shadow-lg transition-all",
+                          floor.isFull 
+                            ? "bg-secondary text-muted-foreground/50 cursor-not-allowed shadow-none" 
+                            : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
+                        )}
                       >
                         <CalendarCheck className="h-3.5 w-3.5" />
                         Randevu Al
