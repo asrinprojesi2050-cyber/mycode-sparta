@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // Sunucu tarafında sahte otobüs verileri
-const busData = [
+let busData = [
   { 
     id: 1, 
     hat: '18', 
@@ -40,7 +40,32 @@ const busData = [
   },
 ];
 
+
+function simulateRealTimeData() {
+    return busData.map(bus => {
+        let newKalanDakika = bus.kalanDakika - 1; 
+
+        if (newKalanDakika < 0) {
+            newKalanDakika = 20; // Otobüs turu tamamladı, yeni tur için başlangıç
+        }
+
+        let durum = 'Yolda';
+        if (newKalanDakika <= 3) {
+            durum = 'Yaklaşıyor';
+        }
+        if (newKalanDakika === 0) {
+            durum = 'Durakta';
+        }
+
+        return {
+            ...bus,
+            kalanDakika: newKalanDakika,
+            durum: durum,
+        };
+    });
+}
+
 export async function GET() {
-  // Gerçekçi olması için her istekte dakikaları rastgele (mantıklı sınırlar içinde) simüle edebiliriz
+  busData = simulateRealTimeData();
   return NextResponse.json(busData);
 }

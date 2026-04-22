@@ -56,20 +56,20 @@ const RESERVATION_TIMEOUT = 30 * 60 * 1000;
 
 function cleanupExpiredReservations() {
   const now = Date.now();
-  const expired = activeReservations.filter(res => now - res.createdAt > RESERVATION_TIMEOUT);
-  
-  expired.forEach(res => {
-    const lot = parkingLots.find(l => l.id === res.lotId);
-    if (lot) {
-      const floor = lot.floors.find(f => f.label === res.floor);
-      if (floor) {
-        floor.free += 1;
-        lot.free += 1;
+  activeReservations = activeReservations.filter(res => {
+    const expired = now - res.createdAt > RESERVATION_TIMEOUT;
+    if (expired) {
+      const lot = parkingLots.find(l => l.id === res.lotId);
+      if (lot) {
+        const floor = lot.floors.find(f => f.label === res.floor);
+        if (floor) {
+          floor.free += 1;
+          lot.free += 1;
+        }
       }
     }
+    return !expired;
   });
-
-  activeReservations = activeReservations.filter(res => now - res.createdAt <= RESERVATION_TIMEOUT);
 }
 
 export async function GET() {
@@ -88,35 +88,45 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { id, floorLabel } = await request.json();
+    const body = await request.json();
+    const { id, floorLabel } = body;
     
+    if (!id || !floorLabel) {
+      return NextResponse.json({ success: false, message: 'Eksik parametreler.' }, { status: 400 });
+    }
+
     cleanupExpiredReservations();
 
-    const lotIndex = parkingLots.findIndex(l => l.id === id);
-    if (lotIndex !== -1) {
-      const floorIndex = parkingLots[lotIndex].floors.findIndex(f => f.label === floorLabel);
-      
-      if (floorIndex !== -1 && parkingLots[lotIndex].floors[floorIndex].free > 0) {
-        parkingLots[lotIndex].floors[floorIndex].free -= 1;
-        parkingLots[lotIndex].free -= 1;
-        
-        const expiresAt = Date.now() + RESERVATION_TIMEOUT;
-        
-        activeReservations.push({
-          lotId: id,
-          floor: floorLabel,
-          createdAt: Date.now(),
-          expiresAt: expiresAt
-        });
-        
-        return NextResponse.json({ 
-          success: true, 
-          expiresAt: expiresAt 
-        });
-      }
+    const lot = parkingLots.find(l => l.id === id);
+    if (!lot) {
+      return NextResponse.json({ success: false, message: "Otopark bulunamadı." }, { status: 404 });
     }
-    
-    return NextResponse.json({ success: false, message: "Yer bulunamadı veya kat dolu." }, { status: 400 });
+
+    const floor = lot.floors.find(f => f.label === floorLabel);
+    if (!floor) {
+      return NextResponse.json({ success: false, message: "Kat bulunamadı." }, { status: 404 });
+    }
+
+    if (floor.free > 0) {
+      floor.free -= 1;
+      lot.free -= 1;
+      
+      const expiresAt = Date.now() + RESERVATION_TIMEOUT;
+      
+      activeReservations.push({
+        lotId: id,
+        floor: floorLabel,
+        createdAt: Date.now(),
+        expiresAt: expiresAt
+      });
+      
+      return NextResponse.json({ 
+        success: true, 
+        expiresAt: expiresAt 
+      });
+    } else {
+      return NextResponse.json({ success: false, message: "Yer bulunamadı veya kat dolu." }, { status: 400 });
+    }
   } catch (error) {
     return NextResponse.json({ success: false, message: "Geçersiz istek." }, { status: 500 });
   }
@@ -125,24 +135,34 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { id, floorLabel } = await request.json();
-    
-    const lotIndex = parkingLots.findIndex(l => l.id === id);
-    if (lotIndex !== -1) {
-      const floorIndex = parkingLots[lotIndex].floors.findIndex(f => f.label === floorLabel);
-      
-      if (floorIndex !== -1) {
-        // Kontenjanı geri yükle
-        parkingLots[lotIndex].floors[floorIndex].free += 1;
-        parkingLots[lotIndex].free += 1;
-        
-        // Aktif randevulardan temizle
-        activeReservations = activeReservations.filter(res => !(res.lotId === id && res.floor === floorLabel));
-        
-        return NextResponse.json({ success: true });
-      }
+
+    if (!id || !floorLabel) {
+      return NextResponse.json({ success: false, message: 'Eksik parametreler.' }, { status: 400 });
     }
     
-    return NextResponse.json({ success: false, message: "İptal edilecek randevu bulunamadı." }, { status: 404 });
+    const lot = parkingLots.find(l => l.id === id);
+    if (!lot) {
+        return NextResponse.json({ success: false, message: "İptal edilecek randevu bulunamadı." }, { status: 404 });
+    }
+
+    const floor = lot.floors.find(f => f.label === floorLabel);
+    if (!floor) {
+        return NextResponse.json({ success: false, message: "İptal edilecek kat bulunamadı." }, { status: 404 });
+    }
+    
+    // Aktif randevuyu bul ve temizle
+    const reservationIndex = activeReservations.findIndex(res => res.lotId === id && res.floor === floorLabel);
+    if (reservationIndex !== -1) {
+        // Kontenjanı geri yükle
+        floor.free += 1;
+        lot.free += 1;
+        
+        activeReservations.splice(reservationIndex, 1);
+        
+        return NextResponse.json({ success: true });
+    } else {
+        return NextResponse.json({ success: false, message: "Aktif randevu bulunamadı." }, { status: 404 });
+    }
   } catch (error) {
     return NextResponse.json({ success: false, message: "Geçersiz istek." }, { status: 500 });
   }

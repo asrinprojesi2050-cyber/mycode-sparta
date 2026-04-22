@@ -12,7 +12,16 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { action, amount } = await request.json();
+    const body = await request.json();
+    const { action, amount } = body;
+
+    if (!action || amount === undefined) {
+      return NextResponse.json({ success: false, message: 'Eksik parametre: action ve amount gereklidir.' }, { status: 400 });
+    }
+
+    if (typeof amount !== 'number') {
+        return NextResponse.json({ success: false, message: 'Tutar sayı olmalıdır.' }, { status: 400 });
+    }
 
     if (action === 'deduct_balance') {
       if (walletData.bakiye >= amount) {
@@ -37,6 +46,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: false, message: 'Geçersiz işlem.' }, { status: 400 });
   } catch (error) {
+    if (error instanceof SyntaxError) {
+        return NextResponse.json({ success: false, message: 'Geçersiz JSON formatı.' }, { status: 400 });
+    }
     return NextResponse.json({ success: false, message: 'Sistem hatası.' }, { status: 500 });
   }
 }

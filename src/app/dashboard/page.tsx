@@ -22,7 +22,8 @@ import {
   QrCode,
   Share2,
   Loader2,
-  Wallet
+  Wallet,
+  Flower2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
@@ -122,7 +123,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="px-6 space-y-8 animate-fade-in">
+      <main className="px-6 space-y-6 animate-fade-in">
         <section>
           <Link href="/isparta-kart" className="block">
             <div className="relative group cursor-pointer transition-transform active:scale-[0.98]">
@@ -155,9 +156,40 @@ export default function Dashboard() {
         </section>
 
         <section>
-          <Button onClick={() => setIsRewardModalOpen(true)} variant="outline" className="w-full h-12 rounded-xl border-reward/30 text-reward bg-white shadow-soft gap-2">
-            <Gift className="h-4 w-4" /><span className="font-bold text-sm">Gül Puanlarımı Kullan</span>
-          </Button>
+          <div className="grid grid-cols-2 gap-4">
+            <Link href="/discover" className="block group">
+              <div className="relative rounded-3xl overflow-hidden shadow-lg h-full bg-gradient-to-br from-primary to-accent text-white transform transition-transform duration-300 group-hover:scale-[1.03] active:scale-95">
+                <div className="absolute inset-0 bg-black/20"></div>
+                <div className="relative h-full p-4 flex flex-col justify-between">
+                  <div className="flex justify-start">
+                    <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-lg border border-white/20 shadow-lg">
+                      <Flower2 className="w-8 h-8 text-primary" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Isparta'yı Keşfet</h3>
+                    <p className="text-sm text-white/80 font-sans">Güller Diyarı & Tarih</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+            <div className="space-y-4">
+              <Link href="/isparta-kart">
+                <Card className="p-4 border-none shadow-soft bg-white rounded-xl">
+                   <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center mb-3"><Gift className="h-5 w-5" /></div>
+                  <h4 className="font-bold text-xs">Gül Puanlarım</h4>
+                  <p className="text-[10px] text-muted-foreground">Ödülleri görüntüle</p>
+                </Card>
+              </Link>
+               <Link href="/announcements">
+                <Card className="p-4 border-none shadow-soft bg-white rounded-xl">
+                   <div className="w-10 h-10 rounded-lg bg-yellow-50 text-yellow-600 flex items-center justify-center mb-3"><Info className="h-5 w-5" /></div>
+                  <h4 className="font-bold text-xs">Duyurular</h4>
+                  <p className="text-[10px] text-muted-foreground">Şehrinizden haberler</p>
+                </Card>
+              </Link>
+            </div>
+          </div>
         </section>
 
         <section>
