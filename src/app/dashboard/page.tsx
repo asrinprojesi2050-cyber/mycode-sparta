@@ -23,7 +23,10 @@ import {
   Share2,
   Loader2,
   Wallet,
-  Flower2
+  Flower2,
+  Star,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BottomNav } from '@/components/bottom-nav';
@@ -38,12 +41,14 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { motion } from 'framer-motion';
 
 export default function Dashboard() {
   const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const { toast } = useToast();
   
   const [currentPoints, setCurrentPoints] = useState(1250);
@@ -107,28 +112,80 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="pb-24 md:pb-8 bg-[#FDFBF9] min-h-screen">
-      <header className="px-6 pt-8 pb-6 flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-40">
+    <div className={cn(
+      "pb-24 md:pb-8 min-h-screen transition-colors duration-500",
+      isDarkMode ? "bg-[#0F0F10] text-white" : "bg-[#FDFBF9] text-foreground"
+    )}>
+      <header className={cn(
+        "px-6 pt-8 pb-6 flex justify-between items-center backdrop-blur-md sticky top-0 z-40 border-b transition-colors duration-500",
+        isDarkMode ? "bg-black/40 border-white/5" : "bg-white/50 border-transparent"
+      )}>
         <div>
-          <h2 className="text-sm font-medium text-muted-foreground">İyi günler,</h2>
-          <h1 className="text-2xl font-bold text-primary tracking-tight">Merhaba Vatandaş</h1>
+          <h2 className={cn(
+            "text-sm font-medium transition-colors",
+            isDarkMode ? "text-white/50" : "text-muted-foreground"
+          )}>İyi günler,</h2>
+          <div className="flex items-center gap-3">
+            <h1 className={cn(
+              "text-2xl font-semibold tracking-tight italic transition-colors",
+              isDarkMode ? "text-white" : "text-primary"
+            )}>Merhaba, Yasin</h1>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={handleShareApp} className="w-10 h-10 rounded-xl bg-white border border-border shadow-soft flex items-center justify-center text-primary">
-            <Share2 className="h-5 w-5" />
-          </button>
-          <Link href="/profile" className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm overflow-hidden">
-            <User className="text-primary h-6 w-6" />
-          </Link>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-400 to-amber-500 px-3 py-1.5 rounded-full shadow-lg shadow-yellow-500/30 border border-white/20 animate-pulse-subtle">
+            <Star className="h-3.5 w-3.5 text-white fill-white" />
+            <span className="text-[10px] font-black text-white whitespace-nowrap uppercase tracking-wider">50 Gül Puan</span>
+          </div>
+          <div className="flex items-center gap-2 ml-1">
+            <button 
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={cn(
+                "w-10 h-10 rounded-xl border shadow-soft flex items-center justify-center transition-all duration-300",
+                isDarkMode 
+                  ? "bg-white/10 border-white/10 text-yellow-400" 
+                  : "bg-white border-border text-primary"
+              )}
+            >
+              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+            <button onClick={handleShareApp} className={cn(
+              "w-10 h-10 rounded-xl border shadow-soft flex items-center justify-center transition-colors",
+              isDarkMode ? "bg-white/10 border-white/10 text-white" : "bg-white border-border text-primary"
+            )}>
+              <Share2 className="h-5 w-5" />
+            </button>
+            <Link href="/profile" className={cn(
+              "w-12 h-12 rounded-xl flex items-center justify-center border shadow-sm overflow-hidden transition-colors",
+              isDarkMode 
+                ? "bg-white/10 border-white/20 text-white" 
+                : "bg-primary/10 border-primary/20 text-primary"
+            )}>
+              <User className="h-6 w-6" />
+            </Link>
+          </div>
         </div>
       </header>
 
-      <main className="px-6 space-y-6 animate-fade-in">
+      <motion.main 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="px-6 space-y-6 mt-6"
+      >
         <section>
           <Link href="/isparta-kart" className="block">
             <div className="relative group cursor-pointer transition-transform active:scale-[0.98]">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-2xl blur opacity-30"></div>
-              <Card className="relative border-none bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-white rounded-2xl overflow-hidden shadow-xl">
+              <div className={cn(
+                "absolute -inset-0.5 rounded-2xl blur opacity-30 transition-all",
+                isDarkMode ? "bg-white" : "bg-gradient-to-r from-primary to-accent"
+              )}></div>
+              <Card className={cn(
+                "relative border-none text-white rounded-2xl overflow-hidden shadow-xl transition-all duration-500",
+                isDarkMode 
+                  ? "bg-gradient-to-br from-neutral-800 via-neutral-900 to-black" 
+                  : "bg-gradient-to-br from-primary via-primary/90 to-primary/80"
+              )}>
                 <div className="absolute top-0 right-0 p-8 opacity-10"><RoseIcon /></div>
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-10">
@@ -158,34 +215,52 @@ export default function Dashboard() {
         <section>
           <div className="grid grid-cols-2 gap-4">
             <Link href="/discover" className="block group">
-              <div className="relative rounded-3xl overflow-hidden shadow-lg h-full bg-gradient-to-br from-primary to-accent text-white transform transition-transform duration-300 group-hover:scale-[1.03] active:scale-95">
-                <div className="absolute inset-0 bg-black/20"></div>
+              <div className="relative rounded-3xl overflow-hidden shadow-lg h-full bg-gradient-to-br from-rose-400 to-pink-500 text-white transform transition-transform duration-300 group-hover:scale-[1.03] active:scale-95">
+                <div className="absolute inset-0 bg-black/5"></div>
                 <div className="relative h-full p-4 flex flex-col justify-between">
                   <div className="flex justify-start">
-                    <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-lg border border-white/20 shadow-lg">
-                      <Flower2 className="w-8 h-8 text-primary" />
+                    <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-lg border border-white/20 shadow-lg">
+                      <Flower2 className="w-8 h-8 text-white" />
                     </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg">Isparta'yı Keşfet</h3>
-                    <p className="text-sm text-white/80 font-sans">Güller Diyarı & Tarih</p>
+                  <div className="mt-8">
+                    <h3 className="font-bold text-lg leading-tight">Isparta'yı Keşfet</h3>
+                    <p className="text-sm text-white/90 font-sans">Güller Diyarı & Tarih</p>
                   </div>
                 </div>
               </div>
             </Link>
             <div className="space-y-4">
               <Link href="/isparta-kart">
-                <Card className="p-4 border-none shadow-soft bg-white rounded-xl">
-                   <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center mb-3"><Gift className="h-5 w-5" /></div>
+                <Card className={cn(
+                  "p-4 border-none shadow-soft rounded-xl transition-all duration-500",
+                  isDarkMode ? "bg-white/5 backdrop-blur-xl border border-white/10" : "bg-white"
+                )}>
+                   <div className={cn(
+                     "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
+                     isDarkMode ? "bg-red-500/20 text-red-400" : "bg-red-50 text-red-600"
+                   )}><Gift className="h-5 w-5" /></div>
                   <h4 className="font-bold text-xs">Gül Puanlarım</h4>
-                  <p className="text-[10px] text-muted-foreground">Ödülleri görüntüle</p>
+                  <p className={cn(
+                    "text-[10px]",
+                    isDarkMode ? "text-white/40" : "text-muted-foreground"
+                  )}>Ödülleri görüntüle</p>
                 </Card>
               </Link>
                <Link href="/announcements">
-                <Card className="p-4 border-none shadow-soft bg-white rounded-xl">
-                   <div className="w-10 h-10 rounded-lg bg-yellow-50 text-yellow-600 flex items-center justify-center mb-3"><Info className="h-5 w-5" /></div>
+                <Card className={cn(
+                  "p-4 border-none shadow-soft rounded-xl transition-all duration-500",
+                  isDarkMode ? "bg-white/5 backdrop-blur-xl border border-white/10" : "bg-white"
+                )}>
+                   <div className={cn(
+                     "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
+                     isDarkMode ? "bg-yellow-500/20 text-yellow-400" : "bg-yellow-50 text-yellow-600"
+                   )}><Info className="h-5 w-5" /></div>
                   <h4 className="font-bold text-xs">Duyurular</h4>
-                  <p className="text-[10px] text-muted-foreground">Şehrinizden haberler</p>
+                  <p className={cn(
+                    "text-[10px]",
+                    isDarkMode ? "text-white/40" : "text-muted-foreground"
+                  )}>Şehrinizden haberler</p>
                 </Card>
               </Link>
             </div>
@@ -194,10 +269,18 @@ export default function Dashboard() {
 
         <section>
           <Link href="/isparta-kart">
-            <Card className="border-none bg-white shadow-soft rounded-2xl overflow-hidden border-l-4 border-l-accent animate-pulse-subtle">
+            <Card className={cn(
+              "border-none shadow-soft rounded-2xl overflow-hidden border-l-4 transition-all duration-500 animate-pulse-subtle",
+              isDarkMode 
+                ? "bg-white/5 backdrop-blur-xl border border-white/10 border-l-accent" 
+                : "bg-white border-l-accent"
+            )}>
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
+                  <div className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center",
+                    isDarkMode ? "bg-accent/20 text-accent" : "bg-accent/10 text-accent"
+                  )}>
                     <div className="relative">
                       <Droplets className="h-6 w-6" />
                       <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-white"></div>
@@ -205,7 +288,10 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <h3 className="font-bold text-sm">Bekleyen Su Faturası</h3>
-                    <p className="text-[10px] text-muted-foreground font-medium">Son Ödeme: 25 Haziran</p>
+                    <p className={cn(
+                      "text-[10px] font-medium",
+                      isDarkMode ? "text-white/40" : "text-muted-foreground"
+                    )}>Son Ödeme: 25 Haziran</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -220,22 +306,40 @@ export default function Dashboard() {
         <section>
           <div className="grid grid-cols-2 gap-4">
             <Link href="/transport">
-              <Card className="p-4 border-none shadow-soft bg-white rounded-xl">
-                <div className="w-10 h-10 rounded-lg bg-green-50 text-green-600 flex items-center justify-center mb-3"><Bus className="h-5 w-5" /></div>
+              <Card className={cn(
+                "p-4 border-none shadow-soft rounded-xl transition-all duration-500",
+                isDarkMode ? "bg-white/5 backdrop-blur-xl border border-white/10" : "bg-white"
+              )}>
+                <div className={cn(
+                  "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
+                  isDarkMode ? "bg-green-500/20 text-green-400" : "bg-green-50 text-green-600"
+                )}><Bus className="h-5 w-5" /></div>
                 <h4 className="font-bold text-xs">Canlı Ulaşım</h4>
-                <p className="text-[10px] text-muted-foreground">Otobüs nerede?</p>
+                <p className={cn(
+                  "text-[10px]",
+                  isDarkMode ? "text-white/40" : "text-muted-foreground"
+                )}>Otobüs nerede?</p>
               </Card>
             </Link>
             <Link href="/parking">
-              <Card className="p-4 border-none shadow-soft bg-white rounded-xl">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-3"><Car className="h-5 w-5" /></div>
+              <Card className={cn(
+                "p-4 border-none shadow-soft rounded-xl transition-all duration-500",
+                isDarkMode ? "bg-white/5 backdrop-blur-xl border border-white/10" : "bg-white"
+              )}>
+                <div className={cn(
+                  "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
+                  isDarkMode ? "bg-blue-500/20 text-blue-400" : "bg-blue-50 text-blue-600"
+                )}><Car className="h-5 w-5" /></div>
                 <h4 className="font-bold text-xs">Otoparklar</h4>
-                <p className="text-[10px] text-muted-foreground">Doluluk oranları</p>
+                <p className={cn(
+                  "text-[10px]",
+                  isDarkMode ? "text-white/40" : "text-muted-foreground"
+                )}>Doluluk oranları</p>
               </Card>
             </Link>
           </div>
         </section>
-      </main>
+      </motion.main>
 
       <BottomNav />
     </div>

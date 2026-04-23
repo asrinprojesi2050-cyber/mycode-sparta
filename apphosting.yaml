@@ -1,7 +1,13 @@
-# Settings to manage and configure a Firebase App Hosting backend.
-# https://firebase.google.com/docs/app-hosting/configure
+kind: "AppHostingConfig"
+schemaVersion: "v1"
 
+# Uygulama çalışma ayarları
 runConfig:
-  # Increase this value if you'd like to automatically spin up
-  # more instances in response to increased traffic.
-  maxInstances: 1
+  maxInstances: 2
+  cpu: 1
+  memoryMiB: 512
+
+# Yapay zekanın "yakıtı" olan API anahtarı
+env:
+  - variable: NEXT_PUBLIC_GEMINI_API_KEY
+    value: "AIzaSyDbNSvXV84haz6n0wPSt5RlPQ4aYEx7F0U"
